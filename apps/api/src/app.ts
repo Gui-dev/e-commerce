@@ -4,8 +4,9 @@ import swagger from '@fastify/swagger'
 import scalar from '@scalar/fastify-api-reference'
 import { env } from './env.js'
 import { authRoutes } from './modules/auth/routes.js'
-import { productRoutes } from './modules/products/routes.js'
+import { createProductRoutes } from './modules/products/routes/index.js'
 import { errorHandler } from './middleware/error-handler.js'
+import { InMemoryProductRepository } from './modules/products/infra/in-memory-product-repository.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -44,7 +45,9 @@ export async function buildApp() {
   await app.register(scalar, { routePrefix: '/docs' })
 
   await app.register(authRoutes)
-  await app.register(productRoutes)
+
+  const productRepository = new InMemoryProductRepository()
+  await app.register(createProductRoutes(productRepository))
 
   app.get('/health', async () => ({ status: 'ok' }))
 
