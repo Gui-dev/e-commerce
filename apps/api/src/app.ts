@@ -4,6 +4,7 @@ import swagger from '@fastify/swagger'
 import scalar from '@scalar/fastify-api-reference'
 import { env } from './env.js'
 import { authRoutes } from './modules/auth/routes.js'
+import { productRoutes } from './modules/products/routes.js'
 import { errorHandler } from './middleware/error-handler.js'
 
 export async function buildApp() {
@@ -43,6 +44,7 @@ export async function buildApp() {
   await app.register(scalar, { routePrefix: '/docs' })
 
   await app.register(authRoutes)
+  await app.register(productRoutes)
 
   app.get('/health', async () => ({ status: 'ok' }))
 
