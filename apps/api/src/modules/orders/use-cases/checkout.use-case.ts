@@ -1,13 +1,13 @@
-import type { Order, OrderRepository } from '../domain/order-repository.js'
-import type { CartRepository } from '../../cart/domain/cart-repository.js'
-import type { StockRepository } from '../../stock/domain/stock-repository.js'
-import type { CouponRepository } from '../../coupons/domain/coupon-repository.js'
-import { EmptyCartError } from '../../cart/domain/cart.js'
-import { InsufficientStockError } from '../../stock/domain/stock.js'
+import type { CartRepository } from "../../cart/domain/cart-repository.js";
+import { EmptyCartError } from "../../cart/domain/cart.js";
+import type { CouponRepository } from "../../coupons/domain/coupon-repository.js";
+import type { StockRepository } from "../../stock/domain/stock-repository.js";
+import { InsufficientStockError } from "../../stock/domain/stock.js";
+import type { Order, OrderRepository } from "../domain/order-repository.js";
 
 export interface CheckoutInput {
-  userId: string
-  idempotencyKey?: string
+  userId: string;
+  idempotencyKey?: string;
 }
 
 export class CheckoutUseCase {
@@ -20,39 +20,39 @@ export class CheckoutUseCase {
 
   async execute(input: CheckoutInput): Promise<Order> {
     if (input.idempotencyKey) {
-      const existing = await this.orderRepository.findByIdempotencyKey(input.idempotencyKey)
-      if (existing) return existing
+      const existing = await this.orderRepository.findByIdempotencyKey(input.idempotencyKey);
+      if (existing) return existing;
     }
 
-    const cart = await this.cartRepository.findByUserId(input.userId)
+    const cart = await this.cartRepository.findByUserId(input.userId);
     if (!cart || cart.items.length === 0) {
-      throw new EmptyCartError()
+      throw new EmptyCartError();
     }
 
     for (const item of cart.items) {
-      const stock = await this.stockRepository.findByVariantId(item.variantId)
+      const stock = await this.stockRepository.findByVariantId(item.variantId);
       if (!stock) {
-        throw new InsufficientStockError(item.variantId, item.quantity, 0)
+        throw new InsufficientStockError(item.variantId, item.quantity, 0);
       }
-      const available = stock.quantity - stock.reserved
+      const available = stock.quantity - stock.reserved;
       if (available < item.quantity) {
-        throw new InsufficientStockError(item.variantId, item.quantity, available)
+        throw new InsufficientStockError(item.variantId, item.quantity, available);
       }
     }
 
-    let discountCents = 0
-    let couponId = cart.couponId
+    let discountCents = 0;
+    const couponId = cart.couponId;
 
     if (cart.couponId) {
-      const coupon = await this.couponRepository.findById(cart.couponId)
+      const coupon = await this.couponRepository.findById(cart.couponId);
       if (coupon) {
-        const subtotal = cart.items.reduce((sum, item) => sum + item.quantity * 50000, 0)
-        if (coupon.type === 'percentage') {
-          discountCents = Math.floor((subtotal * coupon.value) / 100)
+        const subtotal = cart.items.reduce((sum, item) => sum + item.quantity * 50000, 0);
+        if (coupon.type === "percentage") {
+          discountCents = Math.floor((subtotal * coupon.value) / 100);
         } else {
-          discountCents = Math.min(coupon.value, subtotal)
+          discountCents = Math.min(coupon.value, subtotal);
         }
-        await this.couponRepository.incrementUsedCount(coupon.id)
+        await this.couponRepository.incrementUsedCount(coupon.id);
       }
     }
 
@@ -60,7 +60,7 @@ export class CheckoutUseCase {
       variantId: item.variantId,
       quantity: item.quantity,
       unitPriceCents: 50000,
-    }))
+    }));
 
     const order = await this.orderRepository.create({
       userId: input.userId,
@@ -68,16 +68,16 @@ export class CheckoutUseCase {
       couponId,
       discountCents,
       idempotencyKey: input.idempotencyKey,
-    })
+    });
 
-    await this.orderRepository.addItems(order.id, orderItems)
+    await this.orderRepository.addItems(order.id, orderItems);
 
     for (const item of cart.items) {
-      await this.stockRepository.confirmSale(item.variantId, item.quantity)
+      await this.stockRepository.confirmSale(item.variantId, item.quantity);
     }
 
-    await this.cartRepository.clearCart(cart.id)
+    await this.cartRepository.clearCart(cart.id);
 
-    return order
+    return order;
   }
 }
