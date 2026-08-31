@@ -4,6 +4,7 @@ import swagger from '@fastify/swagger'
 import scalar from '@scalar/fastify-api-reference'
 import { env } from './env.js'
 import { authRoutes } from './modules/auth/routes.js'
+import { errorHandler } from './middleware/error-handler.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -11,6 +12,8 @@ export async function buildApp() {
       level: env.NODE_ENV === 'development' ? 'info' : 'warn',
     },
   })
+
+  await app.register(errorHandler)
 
   await app.register(cors, {
     origin: env.NODE_ENV === 'development' ? 'http://localhost:3000' : false,
