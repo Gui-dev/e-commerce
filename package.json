@@ -1,6 +1,7 @@
 {
   "name": "kronostore",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "dev": "turbo dev",
     "dev:api": "turbo dev --filter=@kronostore/api",
