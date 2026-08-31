@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{js,ts,cjs,mjs,json,yaml,yml}"
+      run: pnpm biome check --no-errors-on-unmatched --staged {staged_files}
+      stage_fixed: true
+    types:
+      glob: "*.{ts,tsx}"
+      run: pnpm --filter @kronostore/api typecheck
+      fail_text: "TypeScript errors found"
+
+pre-push:
+  commands:
+    test:
+      run: pnpm test
+      fail_text: "Tests failed. Fix before pushing."
