@@ -1,0 +1,73 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { InMemoryOrderRepository } from '../infra/in-memory-order-repository.js'
+import { InMemoryPaymentRepository } from '../infra/in-memory-payment-repository.js'
+import { InMemoryCartRepository } from '../../cart/infra/in-memory-cart-repository.js'
+import { InMemoryStockRepository } from '../../stock/infra/in-memory-stock-repository.js'
+import { InMemoryCouponRepository } from '../../coupons/infra/in-memory-coupon-repository.js'
+import { CheckoutUseCase } from './checkout.use-case.js'
+import { EmptyCartError } from '../../cart/domain/cart.js'
+
+describe('CheckoutUseCase', () => {
+  let orderRepository: InMemoryOrderRepository
+  let cartRepository: InMemoryCartRepository
+  let stockRepository: InMemoryStockRepository
+  let couponRepository: InMemoryCouponRepository
+  let useCase: CheckoutUseCase
+
+  beforeEach(() => {
+    orderRepository = new InMemoryOrderRepository()
+    cartRepository = new InMemoryCartRepository()
+    stockRepository = new InMemoryStockRepository()
+    couponRepository = new InMemoryCouponRepository()
+    useCase = new CheckoutUseCase(
+      orderRepository,
+      cartRepository,
+      stockRepository,
+      couponRepository,
+    )
+  })
+
+  it('should create an order from cart', async () => {
+    await stockRepository.create('var-001', 10)
+    const cart = await cartRepository.create('user-001')
+    await cartRepository.addItem(cart.id, { variantId: 'var-001', quantity: 2 })
+
+    const order = await useCase.execute({ userId: 'user-001' })
+
+    expect(order.id).toBeDefined()
+    expect(order.status).toBe('pending')
+    expect(order.userId).toBe('user-001')
+  })
+
+  it('should throw EmptyCartError for empty cart', async () => {
+    await expect(useCase.execute({ userId: 'user-001' })).rejects.toThrow(EmptyCartError)
+  })
+
+  it('should apply idempotency key', async () => {
+    await stockRepository.create('var-001', 10)
+    const cart = await cartRepository.create('user-001')
+    await cartRepository.addItem(cart.id, { variantId: 'var-001', quantity: 1 })
+
+    const order1 = await useCase.execute({
+      userId: 'user-001',
+      idempotencyKey: 'idem-001',
+    })
+    const order2 = await useCase.execute({
+      userId: 'user-001',
+      idempotencyKey: 'idem-001',
+    })
+
+    expect(order1.id).toBe(order2.id)
+  })
+
+  it('should confirm stock sale', async () => {
+    await stockRepository.create('var-001', 10)
+    const cart = await cartRepository.create('user-001')
+    await cartRepository.addItem(cart.id, { variantId: 'var-001', quantity: 3 })
+
+    await useCase.execute({ userId: 'user-001' })
+
+    const stock = await stockRepository.findByVariantId('var-001')
+    expect(stock?.quantity).toBe(7)
+  })
+})
