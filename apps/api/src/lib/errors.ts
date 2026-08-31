@@ -4,7 +4,7 @@ export class DomainError extends Error {
     message: string,
     readonly statusCode = 400,
   ) {
-    super(message)
-    this.name = 'DomainError'
+    super(message);
+    this.name = "DomainError";
   }
 }

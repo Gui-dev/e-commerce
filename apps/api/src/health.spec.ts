@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from "vitest";
 
-describe('Health Check', () => {
-  it('should return ok', () => {
-    expect({ status: 'ok' }).toEqual({ status: 'ok' })
-  })
-})
+describe("Health Check", () => {
+  it("should return ok", () => {
+    expect({ status: "ok" }).toEqual({ status: "ok" });
+  });
+});

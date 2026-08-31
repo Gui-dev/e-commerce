@@ -1,25 +1,25 @@
-import type { FastifyRequest, FastifyReply } from 'fastify'
-import { auth } from '../lib/auth.js'
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { auth } from "../lib/auth.js";
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
   const session = await auth.api.getSession({
     headers: request.headers,
-  })
+  });
 
   if (!session) {
-    return reply.code(401).send({ error: 'UNAUTHORIZED', message: 'Login required' })
+    return reply.code(401).send({ error: "UNAUTHORIZED", message: "Login required" });
   }
 
-  request.user = session.user
-  request.session = session.session
+  request.user = session.user;
+  request.session = session.session;
 }
 
 export async function requireAdmin(request: FastifyRequest, reply: FastifyReply) {
-  await requireAuth(request, reply)
+  await requireAuth(request, reply);
 
-  if (reply.sent) return
+  if (reply.sent) return;
 
-  if (request.user.role !== 'admin') {
-    return reply.code(403).send({ error: 'FORBIDDEN', message: 'Admin access required' })
+  if (request.user.role !== "admin") {
+    return reply.code(403).send({ error: "FORBIDDEN", message: "Admin access required" });
   }
 }
