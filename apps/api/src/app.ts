@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
 import scalar from '@scalar/fastify-api-reference'
 import { env } from './env.js'
+import { authRoutes } from './modules/auth/routes.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -37,6 +38,8 @@ export async function buildApp() {
   })
 
   await app.register(scalar, { routePrefix: '/docs' })
+
+  await app.register(authRoutes)
 
   app.get('/health', async () => ({ status: 'ok' }))
 
