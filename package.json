@@ -1,0 +1,23 @@
+{
+  "name": "kronostore",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:api": "turbo dev --filter=@kronostore/api",
+    "dev:web": "turbo dev --filter=@kronostore/web",
+    "build": "turbo build",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "turbo test",
+    "db:migrate": "pnpm --filter @kronostore/api db:migrate",
+    "db:push": "pnpm --filter @kronostore/api db:push",
+    "db:studio": "pnpm --filter @kronostore/api db:studio",
+    "infra:up": "podman compose up -d",
+    "infra:down": "podman compose down"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.0"
+  }
+}
