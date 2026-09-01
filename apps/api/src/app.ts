@@ -13,6 +13,8 @@ import { authRoutes } from "./modules/auth/routes.js";
 import { InMemoryCartRepository } from "./modules/cart/infra/in-memory-cart-repository.js";
 import { createCartRoutes } from "./modules/cart/routes/index.js";
 import { InMemoryCouponRepository } from "./modules/coupons/infra/in-memory-coupon-repository.js";
+import { InMemoryEmailRepository } from "./modules/emails/infra/in-memory-email-repository.js";
+import { createEmailRoutes } from "./modules/emails/routes/index.js";
 import { InMemoryOrderRepository } from "./modules/orders/infra/in-memory-order-repository.js";
 import { createCheckoutRoutes } from "./modules/orders/routes/index.js";
 import { InMemoryPaymentRepository } from "./modules/payments/infra/in-memory-payment-repository.js";
@@ -77,6 +79,9 @@ export async function buildApp() {
 
   const paymentRepository = new InMemoryPaymentRepository();
   await app.register(createPaymentRoutes(paymentRepository));
+
+  const emailRepository = new InMemoryEmailRepository();
+  await app.register(createEmailRoutes(emailRepository));
 
   app.get("/health", async () => ({ status: "ok" }));
 

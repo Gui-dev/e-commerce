@@ -11,4 +11,7 @@ export const env = {
   MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || "minioadmin",
   MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || "minioadmin",
   MINIO_BUCKET: process.env.MINIO_BUCKET || "kronostore",
+  SMTP_HOST: process.env.SMTP_HOST || "localhost",
+  SMTP_PORT: Number(process.env.SMTP_PORT) || 1025,
+  SMTP_FROM: process.env.SMTP_FROM || "noreply@kronostore.dev",
 };

@@ -1,6 +1,6 @@
-import type { WebhookRepository } from '../domain/webhook-repository.js'
-import type { PaymentRepository } from '../../payments/domain/payment-repository.js'
-import type { WebhookPayload } from '../domain/webhook.js'
+import type { PaymentRepository } from "../../payments/domain/payment-repository.js";
+import type { WebhookRepository } from "../domain/webhook-repository.js";
+import type { WebhookPayload } from "../domain/webhook.js";
 
 export class ProcessWebhookUseCase {
   constructor(
@@ -13,26 +13,26 @@ export class ProcessWebhookUseCase {
       event: payload.event,
       payload: payload as unknown as Record<string, unknown>,
       processedAt: null,
-    })
+    });
 
-    const payment = await this.paymentRepository.findById(payload.paymentId)
+    const payment = await this.paymentRepository.findById(payload.paymentId);
     if (!payment) {
-      throw new Error('Payment not found')
+      throw new Error("Payment not found");
     }
 
-    const statusMap: Record<string, 'approved' | 'rejected' | 'refunded'> = {
-      'payment.approved': 'approved',
-      'payment.rejected': 'rejected',
-      'payment.refunded': 'refunded',
-    }
+    const statusMap: Record<string, "approved" | "rejected" | "refunded"> = {
+      "payment.approved": "approved",
+      "payment.rejected": "rejected",
+      "payment.refunded": "refunded",
+    };
 
-    const newStatus = statusMap[payload.event]
+    const newStatus = statusMap[payload.event];
     if (newStatus) {
-      await this.paymentRepository.updateStatus(payment.id, newStatus, payload.externalId)
+      await this.paymentRepository.updateStatus(payment.id, newStatus, payload.externalId);
     }
 
-    await this.webhookRepository.markProcessed(webhook.id)
+    await this.webhookRepository.markProcessed(webhook.id);
 
-    return { webhookId: webhook.id, paymentId: payment.id, status: newStatus }
+    return { webhookId: webhook.id, paymentId: payment.id, status: newStatus };
   }
 }

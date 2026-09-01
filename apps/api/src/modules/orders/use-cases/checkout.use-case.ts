@@ -1,3 +1,4 @@
+import { emailQueue } from "../../../queues/email.queue.js";
 import type { CartRepository } from "../../cart/domain/cart-repository.js";
 import { EmptyCartError } from "../../cart/domain/cart.js";
 import type { CouponRepository } from "../../coupons/domain/coupon-repository.js";
@@ -77,6 +78,12 @@ export class CheckoutUseCase {
     }
 
     await this.cartRepository.clearCart(cart.id);
+
+    await emailQueue.add("order-confirmation", {
+      to: "customer@example.com",
+      subject: `Order ${order.id} confirmed`,
+      html: `<h1>Thank you for your order!</h1><p>Order ID: ${order.id}</p>`,
+    });
 
     return order;
   }

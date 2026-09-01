@@ -1,10 +1,18 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EmptyCartError } from "../../cart/domain/cart.js";
 import { InMemoryCartRepository } from "../../cart/infra/in-memory-cart-repository.js";
 import { InMemoryCouponRepository } from "../../coupons/infra/in-memory-coupon-repository.js";
 import { InMemoryStockRepository } from "../../stock/infra/in-memory-stock-repository.js";
 import { InMemoryOrderRepository } from "../infra/in-memory-order-repository.js";
 import { CheckoutUseCase } from "./checkout.use-case.js";
+
+const mockAdd = vi.hoisted(() => vi.fn().mockResolvedValue({}));
+
+vi.mock("../../../queues/email.queue.js", async () => {
+  return {
+    emailQueue: { add: mockAdd },
+  };
+});
 
 describe("CheckoutUseCase", () => {
   let orderRepository: InMemoryOrderRepository;
