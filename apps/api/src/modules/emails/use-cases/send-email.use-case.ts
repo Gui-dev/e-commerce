@@ -13,6 +13,6 @@ export class SendEmailUseCase {
       html: `<p>Template: ${input.template}</p><pre>${JSON.stringify(input.data, null, 2)}</pre>`,
     });
 
-    return await this.emailRepository.markSent(email.id);
+    return email;
   }
 }

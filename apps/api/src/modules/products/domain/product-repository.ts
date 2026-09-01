@@ -21,6 +21,7 @@ export interface ProductRepository {
   update(id: string, input: UpdateProductInput): Promise<Product>;
   delete(id: string): Promise<void>;
 
+  findVariantById(id: string): Promise<ProductVariant | null>;
   findVariantsByProductId(productId: string): Promise<ProductVariant[]>;
   findVariantBySku(sku: string): Promise<ProductVariant | null>;
   createVariant(

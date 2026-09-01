@@ -43,7 +43,7 @@ export async function buildApp() {
   await app.register(errorHandler);
 
   await app.register(cors, {
-    origin: env.NODE_ENV === "development" ? "http://localhost:3000" : false,
+    origin: env.CORS_ORIGIN ?? (env.NODE_ENV === "development" ? "http://localhost:3000" : false),
     credentials: true,
   });
 
@@ -81,7 +81,13 @@ export async function buildApp() {
 
   const orderRepository = new InMemoryOrderRepository();
   await app.register(
-    createCheckoutRoutes(orderRepository, cartRepository, stockRepository, couponRepository),
+    createCheckoutRoutes(
+      orderRepository,
+      cartRepository,
+      stockRepository,
+      couponRepository,
+      productRepository,
+    ),
   );
 
   const paymentRepository = new InMemoryPaymentRepository();

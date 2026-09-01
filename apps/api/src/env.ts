@@ -19,6 +19,7 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
   API_PORT: z.coerce.number().default(3001),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  CORS_ORIGIN: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

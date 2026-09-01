@@ -96,6 +96,10 @@ export class InMemoryProductRepository implements ProductRepository {
     this.products.delete(id);
   }
 
+  async findVariantById(id: string): Promise<ProductVariant | null> {
+    return this.variants.get(id) ?? null;
+  }
+
   async findVariantsByProductId(productId: string): Promise<ProductVariant[]> {
     return Array.from(this.variants.values()).filter((v) => v.productId === productId);
   }

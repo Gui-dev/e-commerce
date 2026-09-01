@@ -37,26 +37,6 @@ export interface CreateOrderInput {
   idempotencyKey?: string;
 }
 
-export interface Payment {
-  id: string;
-  orderId: string;
-  method: "pix" | "credit_card" | "boleto";
-  status: "pending" | "processing" | "approved" | "rejected" | "refunded";
-  amountCents: number;
-  externalId: string | null;
-  idempotencyKey: string | null;
-  paidAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreatePaymentInput {
-  orderId: string;
-  method: "pix" | "credit_card" | "boleto";
-  amountCents: number;
-  idempotencyKey?: string;
-}
-
 export class OrderError extends DomainError {
   constructor(code: string, message: string, statusCode = 400) {
     super(code, message, statusCode);

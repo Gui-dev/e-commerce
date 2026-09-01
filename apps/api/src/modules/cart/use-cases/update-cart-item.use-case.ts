@@ -8,9 +8,14 @@ export class UpdateCartItemUseCase {
     private readonly stockRepository: StockRepository,
   ) {}
 
-  async execute(_userId: string, itemId: string, quantity: number): Promise<CartItem> {
+  async execute(userId: string, itemId: string, quantity: number): Promise<CartItem> {
     const item = await this.cartRepository.findItemById(itemId);
     if (!item) throw new Error("Cart item not found");
+
+    const cart = await this.cartRepository.findByUserId(userId);
+    if (!cart || cart.id !== item.cartId) {
+      throw new Error("Cart item not found");
+    }
 
     const stock = await this.stockRepository.findByVariantId(item.variantId);
     if (!stock) {

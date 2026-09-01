@@ -2,12 +2,14 @@ import { emailQueue } from "../../../queues/email.queue.js";
 import type { CartRepository } from "../../cart/domain/cart-repository.js";
 import { EmptyCartError } from "../../cart/domain/cart.js";
 import type { CouponRepository } from "../../coupons/domain/coupon-repository.js";
+import type { ProductRepository } from "../../products/domain/product-repository.js";
 import type { StockRepository } from "../../stock/domain/stock-repository.js";
 import { InsufficientStockError } from "../../stock/domain/stock.js";
 import type { Order, OrderRepository } from "../domain/order-repository.js";
 
 export interface CheckoutInput {
   userId: string;
+  userEmail: string;
   idempotencyKey?: string;
 }
 
@@ -17,6 +19,7 @@ export class CheckoutUseCase {
     private readonly cartRepository: CartRepository,
     private readonly stockRepository: StockRepository,
     private readonly couponRepository: CouponRepository,
+    private readonly productRepository: ProductRepository,
   ) {}
 
   async execute(input: CheckoutInput): Promise<Order> {
@@ -47,7 +50,13 @@ export class CheckoutUseCase {
     if (cart.couponId) {
       const coupon = await this.couponRepository.findById(cart.couponId);
       if (coupon) {
-        const subtotal = cart.items.reduce((sum, item) => sum + item.quantity * 50000, 0);
+        let subtotal = 0;
+        for (const item of cart.items) {
+          const variant = await this.productRepository.findVariantById(item.variantId);
+          const product = variant ? await this.productRepository.findById(variant.productId) : null;
+          const price = variant?.priceCents ?? product?.priceCents ?? 0;
+          subtotal += item.quantity * price;
+        }
         if (coupon.type === "percentage") {
           discountCents = Math.floor((subtotal * coupon.value) / 100);
         } else {
@@ -57,11 +66,17 @@ export class CheckoutUseCase {
       }
     }
 
-    const orderItems = cart.items.map((item) => ({
-      variantId: item.variantId,
-      quantity: item.quantity,
-      unitPriceCents: 50000,
-    }));
+    const orderItems = [];
+    for (const item of cart.items) {
+      const variant = await this.productRepository.findVariantById(item.variantId);
+      const product = variant ? await this.productRepository.findById(variant.productId) : null;
+      const unitPriceCents = variant?.priceCents ?? product?.priceCents ?? 0;
+      orderItems.push({
+        variantId: item.variantId,
+        quantity: item.quantity,
+        unitPriceCents,
+      });
+    }
 
     const order = await this.orderRepository.create({
       userId: input.userId,
@@ -80,7 +95,7 @@ export class CheckoutUseCase {
     await this.cartRepository.clearCart(cart.id);
 
     await emailQueue.add("order-confirmation", {
-      to: "customer@example.com",
+      to: input.userEmail,
       subject: `Order ${order.id} confirmed`,
       html: `<h1>Thank you for your order!</h1><p>Order ID: ${order.id}</p>`,
     });
