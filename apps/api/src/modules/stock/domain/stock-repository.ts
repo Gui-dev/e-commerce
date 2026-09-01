@@ -4,6 +4,7 @@ export type { Stock, StockMovement } from "./stock.js";
 
 export interface StockRepository {
   findByVariantId(variantId: string): Promise<Stock | null>;
+  list(): Promise<Stock[]>;
   create(variantId: string, initialQuantity?: number): Promise<Stock>;
   addQuantity(variantId: string, quantity: number): Promise<Stock>;
   reserve(variantId: string, quantity: number): Promise<Stock>;

@@ -6,6 +6,7 @@ export interface OrderRepository {
   findById(id: string): Promise<Order | null>;
   findByUserId(userId: string): Promise<Order[]>;
   findByIdempotencyKey(key: string): Promise<Order | null>;
+  list(): Promise<Order[]>;
   create(input: CreateOrderInput): Promise<Order>;
   addItems(orderId: string, items: CreateOrderInput["items"]): Promise<OrderItem[]>;
   updateStatus(id: string, status: Order["status"]): Promise<Order>;

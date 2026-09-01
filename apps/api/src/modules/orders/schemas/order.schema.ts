@@ -27,3 +27,7 @@ export const webhookPaymentSchema = z.object({
 export const idempotencyKeyHeaderSchema = z.object({
   "idempotency-key": z.string().optional(),
 });
+
+export const updateOrderStatusBodySchema = z.object({
+  status: z.enum(["pending", "confirmed", "paid", "shipped", "delivered", "cancelled"]),
+});

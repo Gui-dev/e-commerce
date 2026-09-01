@@ -12,16 +12,23 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { authRoutes } from "./modules/auth/routes.js";
 import { InMemoryCartRepository } from "./modules/cart/infra/in-memory-cart-repository.js";
 import { createCartRoutes } from "./modules/cart/routes/index.js";
+import { InMemoryCategoryRepository } from "./modules/categories/infra/in-memory-category-repository.js";
+import { createCategoryRoutes } from "./modules/categories/routes/index.js";
 import { InMemoryCouponRepository } from "./modules/coupons/infra/in-memory-coupon-repository.js";
+import { createCouponRoutes } from "./modules/coupons/routes/index.js";
 import { InMemoryEmailRepository } from "./modules/emails/infra/in-memory-email-repository.js";
 import { createEmailRoutes } from "./modules/emails/routes/index.js";
 import { InMemoryOrderRepository } from "./modules/orders/infra/in-memory-order-repository.js";
+import { createAdminOrderRoutes } from "./modules/orders/routes/admin.js";
 import { createCheckoutRoutes } from "./modules/orders/routes/index.js";
 import { InMemoryPaymentRepository } from "./modules/payments/infra/in-memory-payment-repository.js";
 import { createPaymentRoutes } from "./modules/payments/routes/index.js";
 import { InMemoryProductRepository } from "./modules/products/infra/in-memory-product-repository.js";
 import { createProductRoutes } from "./modules/products/routes/index.js";
 import { InMemoryStockRepository } from "./modules/stock/infra/in-memory-stock-repository.js";
+import { createAdminStockRoutes } from "./modules/stock/routes/admin.js";
+import { InMemoryUserRepository } from "./modules/users/infra/in-memory-user-repository.js";
+import { createAdminUserRoutes } from "./modules/users/routes/admin.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -82,6 +89,18 @@ export async function buildApp() {
 
   const emailRepository = new InMemoryEmailRepository();
   await app.register(createEmailRoutes(emailRepository));
+
+  const categoryRepository = new InMemoryCategoryRepository();
+  await app.register(createCategoryRoutes(categoryRepository));
+
+  await app.register(createCouponRoutes(couponRepository));
+
+  await app.register(createAdminOrderRoutes(orderRepository));
+
+  await app.register(createAdminStockRoutes(stockRepository));
+
+  const userRepository = new InMemoryUserRepository();
+  await app.register(createAdminUserRoutes(userRepository));
 
   app.get("/health", async () => ({ status: "ok" }));
 

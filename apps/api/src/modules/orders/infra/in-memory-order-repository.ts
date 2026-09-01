@@ -26,6 +26,10 @@ export class InMemoryOrderRepository implements OrderRepository {
     return null;
   }
 
+  async list(): Promise<Order[]> {
+    return Array.from(this.orders.values());
+  }
+
   async create(input: CreateOrderInput): Promise<Order> {
     const now = new Date();
     const order: Order = {

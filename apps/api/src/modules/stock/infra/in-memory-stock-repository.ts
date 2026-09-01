@@ -13,6 +13,10 @@ export class InMemoryStockRepository implements StockRepository {
     return null;
   }
 
+  async list(): Promise<Stock[]> {
+    return Array.from(this.stock.values());
+  }
+
   async create(variantId: string, initialQuantity = 0): Promise<Stock> {
     const existing = await this.findByVariantId(variantId);
     if (existing) return existing;

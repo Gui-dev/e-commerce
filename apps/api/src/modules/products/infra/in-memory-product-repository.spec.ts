@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { runProductRepositoryContractSuite } from "../products-repository.contract-test.js";
 import { InMemoryProductRepository } from "./in-memory-product-repository.js";
+import { runProductRepositoryContractSuite } from "./products-repository.contract-test.js";
 
 runProductRepositoryContractSuite("InMemoryProductRepository", async () => {
   return new InMemoryProductRepository();

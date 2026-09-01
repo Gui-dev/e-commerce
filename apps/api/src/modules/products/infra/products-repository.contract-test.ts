@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { ProductRepository } from "./domain/product-repository.js";
+import type { ProductRepository } from "../domain/product-repository.js";
 
 export function runProductRepositoryContractSuite(
   label: string,
