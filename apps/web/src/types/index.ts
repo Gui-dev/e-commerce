@@ -57,15 +57,27 @@ export interface CartItem {
   cartId: string;
   variantId: string;
   quantity: number;
-  addedAt: string;
-  variant?: ProductVariant;
-  product?: Product;
+  variant: {
+    id: string;
+    name: string;
+    sku: string;
+    priceCents: number;
+    product: {
+      id: string;
+      name: string;
+      slug: string;
+      imageUrl: string | null;
+    };
+  };
 }
 
 export interface Cart {
   id: string;
   userId: string;
   couponId: string | null;
+  subtotalCents: number;
+  discountCents: number;
+  totalCents: number;
   items: CartItem[];
   createdAt: string;
   updatedAt: string;
