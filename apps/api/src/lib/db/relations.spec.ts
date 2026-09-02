@@ -3,7 +3,6 @@ import { db } from "./test-db.js";
 import {
   TEST_CATEGORY_ID,
   TEST_PRODUCT_ID,
-  TEST_STOCK_ID,
   TEST_VARIANT_ID,
   resetDatabase,
   seedTestData,
