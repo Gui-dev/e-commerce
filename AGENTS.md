@@ -53,11 +53,19 @@ src/modules/{module}/
 - Use `app.withTypeProvider<ZodTypeProvider>()` in routes
 - Remove manual validation from use-cases (Zod handles it)
 
-### Testing
+### Testing (API)
 - Unit tests: Co-located with use-cases, suffix `.spec.ts`
 - Integration tests: Use in-memory repositories
 - Run tests: `pnpm --filter @kronostore/api test`
 - Run typecheck: `pnpm --filter @kronostore/api typecheck`
+
+### Testing (Frontend)
+- Unit tests: Co-located with components, suffix `.spec.tsx`
+- Hook tests: Co-located with hooks, suffix `.spec.ts`
+- E2E tests: Centralized in `tests/e2e/`
+- MSW for API mocking at network boundary
+- Run tests: `pnpm --filter @kronostore/web test`
+- Run E2E: `pnpm --filter @kronostore/web test:e2e`
 
 ### Git Commits
 - Use Conventional Commits in English
@@ -99,11 +107,13 @@ pnpm infra:down             # Stop infrastructure
 - Foundation (Task 1): Monorepo, API skeleton, DB schema, auth, middleware
 - Catalog (Task 2): Products, categories, variants, stock, images
 - Cart & Checkout (Task 2.5): Cart, coupons, checkout
-
-### In Progress
 - Payments & Orders (Task 3): Payment simulation, webhooks
-
-### Pending
 - Async Processing (Task 4): BullMQ workers, email, webhooks
 - Admin Panel (Task 5): Admin routes and UI
-- Frontend (Task 6): Next.js pages
+- Frontend (Task 6): Next.js customer storefront
+
+### In Progress
+- (none)
+
+### Pending
+- (none)
