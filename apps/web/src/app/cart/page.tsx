@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useCartStore } from "@/stores/cart-store";
 import { CartItem } from "@/components/cart/cart-item";
 import { CartSummary } from "@/components/cart/cart-summary";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useCartStore } from "@/stores/cart-store";
 import { ShoppingCart } from "lucide-react";
+import Link from "next/link";
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items);

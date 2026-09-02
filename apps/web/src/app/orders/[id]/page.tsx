@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
-import { useAuthStore } from "@/stores/auth-store";
-import { api } from "@/lib/api";
-import { formatBRL } from "@/lib/utils";
-import { ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/constants";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { api } from "@/lib/api";
+import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatBRL } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Order } from "@/types";
 import { ArrowLeft, Loader2, Package } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -106,9 +105,7 @@ export default function OrderDetailPage() {
                       {item.quantity}x {formatBRL(item.unitPriceCents)}
                     </p>
                   </div>
-                  <p className="font-medium">
-                    {formatBRL(item.unitPriceCents * item.quantity)}
-                  </p>
+                  <p className="font-medium">{formatBRL(item.unitPriceCents * item.quantity)}</p>
                 </div>
               ))}
             </CardContent>
@@ -119,7 +116,10 @@ export default function OrderDetailPage() {
               <CardTitle>Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <Badge variant={order.status === "paid" ? "default" : "secondary"} className="text-sm">
+              <Badge
+                variant={order.status === "paid" ? "default" : "secondary"}
+                className="text-sm"
+              >
                 {ORDER_STATUS_LABELS[order.status]}
               </Badge>
             </CardContent>

@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useAuthStore } from "@/stores/auth-store";
-import { api } from "@/lib/api";
-import { formatBRL } from "@/lib/utils";
-import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { api } from "@/lib/api";
+import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { formatBRL } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Order } from "@/types";
-import { Package, Loader2 } from "lucide-react";
+import { Loader2, Package } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -72,9 +72,7 @@ export default function OrdersPage() {
         <Package className="size-16 text-muted-foreground" />
         <div>
           <h2 className="text-xl font-semibold">Nenhum pedido encontrado</h2>
-          <p className="text-sm text-muted-foreground">
-            Você ainda não fez nenhum pedido.
-          </p>
+          <p className="text-sm text-muted-foreground">Você ainda não fez nenhum pedido.</p>
         </div>
         <Link href="/" className={buttonVariants()}>
           Ver Produtos

@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import { useCartStore } from "@/stores/cart-store";
-import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { formatBRL } from "@/lib/utils";
+import { useCartStore } from "@/stores/cart-store";
 import { Trash2 } from "lucide-react";
+import Image from "next/image";
 
 interface CartItemProps {
   variantId: string;

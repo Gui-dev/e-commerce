@@ -7,9 +7,7 @@ export default function Home() {
     <div className="flex flex-col">
       <section className="bg-gradient-to-b from-muted/50 to-background px-4 py-16 md:py-24">
         <div className="mx-auto max-w-6xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
-            KronoStore
-          </h1>
+          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">KronoStore</h1>
           <p className="mt-4 text-lg text-muted-foreground">
             Hardware e periféricos de alta performance
           </p>

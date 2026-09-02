@@ -1,19 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
-import { useCartStore } from "@/stores/cart-store";
-import { api } from "@/lib/api";
-import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { api } from "@/lib/api";
+import { formatBRL } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth-store";
+import { useCartStore } from "@/stores/cart-store";
+import type { Order, PaymentMethod } from "@/types";
+import { CreditCard, Loader2, MapPin } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { PaymentPicker } from "./payment-picker";
-import type { PaymentMethod, Order } from "@/types";
-import { MapPin, CreditCard, Loader2 } from "lucide-react";
 
 interface Address {
   street: string;
@@ -27,7 +27,7 @@ interface Address {
 
 export function CheckoutForm() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const _user = useAuthStore((s) => s.user);
   const items = useCartStore((s) => s.items);
   const totalCents = useCartStore((s) => s.totalCents());
   const clearCart = useCartStore((s) => s.clearCart);

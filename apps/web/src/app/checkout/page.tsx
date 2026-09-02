@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
+import { useAuthStore } from "@/stores/auth-store";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function CheckoutPage() {
   const router = useRouter();

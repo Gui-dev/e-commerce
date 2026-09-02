@@ -1,13 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import type { PaginatedResponse, Product } from "@/types";
-import { ProductCard } from "./product-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { PackageSearch } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ProductCard } from "./product-card";
 
 interface ProductGridProps {
   page?: number;
@@ -43,7 +43,7 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
       if (categoryId) params.set("categoryId", categoryId);
       if (search) params.set("search", search);
       const response = await api.get<{ data: PaginatedResponse<Product> }>(
-        `/products?${params.toString()}`
+        `/products?${params.toString()}`,
       );
       return response.data;
     },
@@ -53,6 +53,7 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list, never reordered
           <ProductCardSkeleton key={i} />
         ))}
       </div>
@@ -65,9 +66,7 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
         <PackageSearch className="size-12 text-muted-foreground" />
         <div>
           <h3 className="text-lg font-medium">Erro ao carregar produtos</h3>
-          <p className="text-sm text-muted-foreground">
-            Tente novamente mais tarde.
-          </p>
+          <p className="text-sm text-muted-foreground">Tente novamente mais tarde.</p>
         </div>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Tentar novamente

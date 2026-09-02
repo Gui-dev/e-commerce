@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { ShoppingCart } from "lucide-react"
-import { buttonVariants } from "@/components/ui/button"
-import { ThemeToggle } from "./theme-toggle"
-import { useCartStore } from "@/stores/cart-store"
+import { buttonVariants } from "@/components/ui/button";
+import { useCartStore } from "@/stores/cart-store";
+import { ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
-  const itemCount = useCartStore((s) => s.itemCount())
+  const itemCount = useCartStore((s) => s.itemCount());
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -23,7 +23,11 @@ export function Header() {
           <Link href="/orders" className={buttonVariants({ variant: "ghost" })}>
             Meus Pedidos
           </Link>
-          <Link href="/cart" className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="Carrinho">
+          <Link
+            href="/cart"
+            className={buttonVariants({ variant: "ghost", size: "icon" })}
+            aria-label="Carrinho"
+          >
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
@@ -35,5 +39,5 @@ export function Header() {
         </nav>
       </div>
     </header>
-  )
+  );
 }

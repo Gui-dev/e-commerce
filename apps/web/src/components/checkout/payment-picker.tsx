@@ -1,8 +1,8 @@
 "use client";
 
-import type { PaymentMethod } from "@/types";
-import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import type { PaymentMethod } from "@/types";
 import { CreditCard, FileText, QrCode } from "lucide-react";
 
 interface PaymentPickerProps {
@@ -10,7 +10,12 @@ interface PaymentPickerProps {
   onChange: (method: PaymentMethod) => void;
 }
 
-const paymentMethods: { method: PaymentMethod; label: string; icon: React.ReactNode; description: string }[] = [
+const paymentMethods: {
+  method: PaymentMethod;
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+}[] = [
   {
     method: "pix",
     label: "PIX",
@@ -44,14 +49,24 @@ export function PaymentPicker({ value, onChange }: PaymentPickerProps) {
           onClick={() => onChange(method)}
         >
           <CardContent className="flex items-center gap-4">
-            <div className={cn("flex size-12 items-center justify-center rounded-lg", value === method ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
+            <div
+              className={cn(
+                "flex size-12 items-center justify-center rounded-lg",
+                value === method ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+              )}
+            >
               {icon}
             </div>
             <div className="flex-1">
               <p className="font-medium">{label}</p>
               <p className="text-sm text-muted-foreground">{description}</p>
             </div>
-            <div className={cn("size-4 rounded-full border-2", value === method ? "border-primary" : "border-muted-foreground/30")}>
+            <div
+              className={cn(
+                "size-4 rounded-full border-2",
+                value === method ? "border-primary" : "border-muted-foreground/30",
+              )}
+            >
               {value === method && <div className="size-full rounded-full bg-primary" />}
             </div>
           </CardContent>

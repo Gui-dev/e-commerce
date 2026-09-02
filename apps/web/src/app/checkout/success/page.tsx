@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
@@ -17,9 +18,7 @@ export default function CheckoutSuccessPage() {
           <CheckCircle className="size-16 text-green-600 dark:text-green-400" />
           <div>
             <h1 className="text-2xl font-bold">Pedido Realizado!</h1>
-            <p className="text-muted-foreground mt-2">
-              Seu pedido foi recebido com sucesso.
-            </p>
+            <p className="text-muted-foreground mt-2">Seu pedido foi recebido com sucesso.</p>
           </div>
           {orderId && (
             <p className="text-sm text-muted-foreground">
@@ -39,5 +38,13 @@ export default function CheckoutSuccessPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }

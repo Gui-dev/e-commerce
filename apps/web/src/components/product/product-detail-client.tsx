@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import type { ProductVariant } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, ShoppingCart, Check } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, Check, ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface ProductWithVariants {
   id: string;
@@ -72,7 +72,12 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
   const [addedToCart, setAddedToCart] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  const { data: product, isLoading, error, refetch } = useQuery<ProductWithVariants>({
+  const {
+    data: product,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<ProductWithVariants>({
     queryKey: ["product", slug],
     queryFn: async () => {
       const response = await api.get<{ data: ProductWithVariants }>(`/products/${slug}`);
@@ -156,7 +161,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
 
           {hasVariants && (
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Variante</label>
+              <p className="text-sm font-medium">Variante</p>
               <div className="flex flex-wrap gap-2">
                 {product.variants.map((variant) => (
                   <Button
@@ -167,9 +172,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
                   >
                     {variant.name}
                     {variant.sku && (
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        ({variant.sku})
-                      </span>
+                      <span className="ml-1 text-xs text-muted-foreground">({variant.sku})</span>
                     )}
                   </Button>
                 ))}
@@ -205,8 +208,7 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
               </>
             ) : (
               <>
-                <ShoppingCart className="size-4" />
-                + Comprar
+                <ShoppingCart className="size-4" />+ Comprar
               </>
             )}
           </Button>
