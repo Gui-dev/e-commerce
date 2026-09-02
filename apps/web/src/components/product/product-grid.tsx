@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import type { PaginatedResponse, Product } from "@/types";
+import type { Product } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { PackageSearch } from "lucide-react";
 import { ProductCard } from "./product-card";
@@ -34,7 +34,7 @@ function ProductCardSkeleton() {
 }
 
 export function ProductGrid({ page = 1, limit = 12, categoryId, search }: ProductGridProps) {
-  const { data, isLoading, error } = useQuery<PaginatedResponse<Product>>({
+  const { data, isLoading, error } = useQuery<{ products: Product[] }>({
     queryKey: ["products", { page, limit, categoryId, search }],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -42,10 +42,8 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
       params.set("limit", String(limit));
       if (categoryId) params.set("categoryId", categoryId);
       if (search) params.set("search", search);
-      const response = await api.get<{ data: PaginatedResponse<Product> }>(
-        `/products?${params.toString()}`,
-      );
-      return response.data;
+      const response = await api.get<{ products: Product[] }>(`/products?${params.toString()}`);
+      return response;
     },
   });
 
@@ -75,7 +73,7 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
     );
   }
 
-  if (!data || data.data.length === 0) {
+  if (!data || data.products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
         <PackageSearch className="size-12 text-muted-foreground" />
@@ -91,7 +89,7 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {data.data.map((product) => (
+      {data.products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
     </div>

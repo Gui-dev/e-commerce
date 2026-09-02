@@ -12,19 +12,14 @@ export default function Home() {
             Hardware e periféricos de alta performance
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            <Link href="/products">
+            <Link href="#produtos">
               <Button size="lg">Ver Catálogo</Button>
-            </Link>
-            <Link href="/categories">
-              <Button variant="outline" size="lg">
-                Categorias
-              </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-12">
+      <section id="produtos" className="px-4 py-12">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-8 text-2xl font-semibold">Produtos em Destaque</h2>
           <ProductGrid limit={8} />

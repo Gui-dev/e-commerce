@@ -15,11 +15,11 @@ const mockUser: User = {
 };
 
 export const authHandlers = [
-  http.post(`${API_URL}/auth/login`, async ({ request }) => {
+  http.post(`${API_URL}/auth/sign-in`, async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string };
 
     if (body.email === "test@example.com" && body.password === "password123") {
-      return HttpResponse.json({ data: { user: mockUser, token: "mock-jwt-token" } });
+      return HttpResponse.json({ user: mockUser, token: "mock-jwt-token" });
     }
 
     return HttpResponse.json(
@@ -28,7 +28,7 @@ export const authHandlers = [
     );
   }),
 
-  http.post(`${API_URL}/auth/register`, async ({ request }) => {
+  http.post(`${API_URL}/auth/sign-up`, async ({ request }) => {
     const body = (await request.json()) as { name: string; email: string; password: string };
 
     if (body.email === "existing@example.com") {
@@ -39,7 +39,7 @@ export const authHandlers = [
     }
 
     return HttpResponse.json(
-      { data: { user: { ...mockUser, ...body, id: "user-new" }, token: "mock-jwt-token-new" } },
+      { user: { ...mockUser, ...body, id: "user-new" }, token: "mock-jwt-token-new" },
       { status: 201 },
     );
   }),

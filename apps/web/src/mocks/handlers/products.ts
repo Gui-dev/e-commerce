@@ -1,4 +1,4 @@
-import type { PaginatedResponse, Product } from "@/types";
+import type { Product } from "@/types";
 import { http, HttpResponse } from "msw";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -51,15 +51,12 @@ export const productsHandlers = [
     const page = Number(url.searchParams.get("page") ?? "1");
     const limit = Number(url.searchParams.get("limit") ?? "20");
 
-    const response: PaginatedResponse<Product> = {
-      data: mockProducts,
+    return HttpResponse.json({
+      products: mockProducts,
       total: mockProducts.length,
       page,
       limit,
-      totalPages: 1,
-    };
-
-    return HttpResponse.json(response);
+    });
   }),
 
   http.get(`${API_URL}/products/:slug`, ({ params }) => {
@@ -72,6 +69,6 @@ export const productsHandlers = [
       );
     }
 
-    return HttpResponse.json({ data: product });
+    return HttpResponse.json({ ...product, variants: [] });
   }),
 ];

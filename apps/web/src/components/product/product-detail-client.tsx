@@ -80,8 +80,8 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
   } = useQuery<ProductWithVariants>({
     queryKey: ["product", slug],
     queryFn: async () => {
-      const response = await api.get<{ data: ProductWithVariants }>(`/products/${slug}`);
-      return response.data;
+      const response = await api.get<ProductWithVariants>(`/products/${slug}`);
+      return response;
     },
   });
 
