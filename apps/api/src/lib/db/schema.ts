@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
   uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 // Enums
@@ -170,6 +171,12 @@ export const orders = pgTable("orders", {
   totalCents: integer("total_cents").notNull(),
   couponId: uuid("coupon_id"),
   idempotencyKey: text("idempotency_key").unique(),
+  shippingName: varchar("shipping_name", { length: 255 }),
+  shippingStreet: varchar("shipping_street", { length: 255 }),
+  shippingCity: varchar("shipping_city", { length: 255 }),
+  shippingState: varchar("shipping_state", { length: 2 }),
+  shippingZip: varchar("shipping_zip", { length: 10 }),
+  shippingCountry: varchar("shipping_country", { length: 2 }).default("BR"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -225,6 +232,7 @@ export const webhookLogs = pgTable("webhook_logs", {
   attempts: integer("attempts").default(0).notNull(),
   lastError: text("last_error"),
   nextRetryAt: timestamp("next_retry_at"),
+  processedAt: timestamp("processed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -234,6 +242,7 @@ export const emailLogs = pgTable("email_logs", {
   to: text("to").notNull(),
   subject: text("subject").notNull(),
   template: text("template").notNull(),
+  data: jsonb("data"),
   status: text("status").default("pending").notNull(),
   sentAt: timestamp("sent_at"),
   error: text("error"),
