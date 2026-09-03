@@ -1,7 +1,7 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
-const API_URL = "http://localhost:3001";
+const API_URL = process.env.API_URL ?? "http://localhost:3001";
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 const TEST_EMAIL = `e2e-${randomUUID()}@test.com`;
@@ -97,6 +97,7 @@ test.describe("Checkout Webhook Flow", () => {
     const authToken = auth.token;
 
     const products = await apiGet<ProductListResult>("/products", authToken);
+    expect(products.products.length).toBeGreaterThan(0);
     const productSlug = products.products[0].slug;
     const product = await apiGet<ProductDetail>(`/products/${productSlug}`, authToken);
     const variantId = product.variants[0].id;
@@ -141,8 +142,8 @@ test.describe("Checkout Webhook Flow", () => {
     });
 
     expect(webhookRes.ok).toBeTruthy();
+    expect(await webhookRes.json()).toEqual({ received: true });
 
-    await page.goto("/");
     await page.waitForFunction(() => localStorage.getItem("kronostore-auth-token") !== null, {
       timeout: 5000,
     });
