@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/lib/api";
-import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/constants";
 import { formatBRL } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Order } from "@/types";
-import { ArrowLeft, Loader2, Package } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, MapPin, Package } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -111,6 +111,25 @@ export default function OrderDetailPage() {
             </CardContent>
           </Card>
 
+          {order.shippingName && order.shippingStreet && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="size-5" />
+                  Endereço de Entrega
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-1 text-sm">
+                <p className="font-medium">{order.shippingName}</p>
+                <p className="text-muted-foreground">{order.shippingStreet}</p>
+                <p className="text-muted-foreground">
+                  {order.shippingCity} - {order.shippingState}, CEP {order.shippingZip}
+                </p>
+                <p className="text-muted-foreground uppercase">{order.shippingCountry}</p>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Status</CardTitle>
@@ -124,6 +143,42 @@ export default function OrderDetailPage() {
               </Badge>
             </CardContent>
           </Card>
+
+          {order.payment && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="size-5" />
+                  Pagamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Método</span>
+                  <span>{PAYMENT_METHOD_LABELS[order.payment.method]}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Valor</span>
+                  <span>{formatBRL(order.payment.amountCents)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge
+                    variant={order.payment.status === "approved" ? "default" : "secondary"}
+                    className="text-xs"
+                  >
+                    {PAYMENT_STATUS_LABELS[order.payment.status]}
+                  </Badge>
+                </div>
+                {order.payment.paidAt && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Pago em</span>
+                    <span>{new Date(order.payment.paidAt).toLocaleDateString("pt-BR")}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="lg:sticky lg:top-24 lg:self-start">
@@ -144,6 +199,10 @@ export default function OrderDetailPage() {
                   </span>
                 </div>
               )}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Frete</span>
+                <span className="text-green-600 dark:text-green-400">Grátis</span>
+              </div>
               <Separator />
               <div className="flex items-center justify-between font-semibold">
                 <span>Total</span>

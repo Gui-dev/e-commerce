@@ -21,6 +21,12 @@ function mapOrder(row: typeof ordersTable.$inferSelect): Order {
     totalCents: row.totalCents,
     couponId: row.couponId,
     idempotencyKey: row.idempotencyKey,
+    shippingName: row.shippingName,
+    shippingStreet: row.shippingStreet,
+    shippingCity: row.shippingCity,
+    shippingState: row.shippingState,
+    shippingZip: row.shippingZip,
+    shippingCountry: row.shippingCountry,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -124,6 +130,12 @@ export class DrizzleOrderRepository implements OrderRepository {
         totalCents: subtotalCents - discountCents,
         couponId: input.couponId ?? null,
         idempotencyKey: input.idempotencyKey ?? null,
+        shippingName: input.shipping?.name ?? null,
+        shippingStreet: input.shipping?.street ?? null,
+        shippingCity: input.shipping?.city ?? null,
+        shippingState: input.shipping?.state ?? null,
+        shippingZip: input.shipping?.zip ?? null,
+        shippingCountry: input.shipping?.country ?? null,
       })
       .returning();
 

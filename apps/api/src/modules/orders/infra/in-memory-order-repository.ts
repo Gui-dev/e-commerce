@@ -43,6 +43,12 @@ export class InMemoryOrderRepository implements OrderRepository {
         (input.discountCents ?? 0),
       couponId: input.couponId ?? null,
       idempotencyKey: input.idempotencyKey ?? null,
+      shippingName: input.shipping?.name ?? null,
+      shippingStreet: input.shipping?.street ?? null,
+      shippingCity: input.shipping?.city ?? null,
+      shippingState: input.shipping?.state ?? null,
+      shippingZip: input.shipping?.zip ?? null,
+      shippingCountry: input.shipping?.country ?? null,
       createdAt: now,
       updatedAt: now,
     };

@@ -93,6 +93,7 @@ export class CheckoutUseCase {
         couponId,
         discountCents,
         idempotencyKey: input.idempotencyKey,
+        shipping: input.address,
       });
 
       await this.orderRepository.addItems(created.id, orderItems);

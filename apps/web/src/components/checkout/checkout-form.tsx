@@ -16,13 +16,11 @@ import { useState } from "react";
 import { PaymentPicker } from "./payment-picker";
 
 interface Address {
+  name: string;
   street: string;
-  number: string;
-  complement: string;
-  neighborhood: string;
   city: string;
   state: string;
-  zipCode: string;
+  zip: string;
 }
 
 export function CheckoutForm() {
@@ -36,13 +34,11 @@ export function CheckoutForm() {
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [address, setAddress] = useState<Address>({
+    name: "",
     street: "",
-    number: "",
-    complement: "",
-    neighborhood: "",
     city: "",
     state: "",
-    zipCode: "",
+    zip: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +59,9 @@ export function CheckoutForm() {
         await syncWithServer(token);
       }
 
-      const order = await api.post<Order>("/checkout");
+      const order = await api.post<Order>("/checkout", {
+        address: { ...address, country: "BR" },
+      });
 
       await api.post("/payments", {
         orderId: order.id,
@@ -103,48 +101,27 @@ export function CheckoutForm() {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="street">Rua</Label>
-                <Input
-                  id="street"
-                  placeholder="Rua das Flores"
-                  value={address.street}
-                  onChange={(e) => handleAddressChange("street", e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="number">Número</Label>
-                <Input
-                  id="number"
-                  placeholder="123"
-                  value={address.number}
-                  onChange={(e) => handleAddressChange("number", e.target.value)}
-                  required
-                />
-              </div>
-            </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="complement">Complemento</Label>
+              <Label htmlFor="name">Nome do Destinatário</Label>
               <Input
-                id="complement"
-                placeholder="Apto 42, Bloco B"
-                value={address.complement}
-                onChange={(e) => handleAddressChange("complement", e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="neighborhood">Bairro</Label>
-              <Input
-                id="neighborhood"
-                placeholder="Centro"
-                value={address.neighborhood}
-                onChange={(e) => handleAddressChange("neighborhood", e.target.value)}
+                id="name"
+                placeholder="Maria Silva"
+                value={address.name}
+                onChange={(e) => handleAddressChange("name", e.target.value)}
                 required
               />
             </div>
-            <div className="grid gap-4 sm:grid-cols-[1fr_100px_60px]">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="street">Rua</Label>
+              <Input
+                id="street"
+                placeholder="Rua das Flores, 123"
+                value={address.street}
+                onChange={(e) => handleAddressChange("street", e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="city">Cidade</Label>
                 <Input
@@ -160,21 +137,22 @@ export function CheckoutForm() {
                 <Input
                   id="state"
                   placeholder="SP"
+                  maxLength={2}
                   value={address.state}
-                  onChange={(e) => handleAddressChange("state", e.target.value)}
+                  onChange={(e) => handleAddressChange("state", e.target.value.toUpperCase())}
                   required
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="zipCode">CEP</Label>
-                <Input
-                  id="zipCode"
-                  placeholder="01234-567"
-                  value={address.zipCode}
-                  onChange={(e) => handleAddressChange("zipCode", e.target.value)}
-                  required
-                />
-              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="zip">CEP</Label>
+              <Input
+                id="zip"
+                placeholder="01234-567"
+                value={address.zip}
+                onChange={(e) => handleAddressChange("zip", e.target.value)}
+                required
+              />
             </div>
           </CardContent>
         </Card>

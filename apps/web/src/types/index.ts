@@ -107,7 +107,14 @@ export interface Order {
   totalCents: number;
   couponId: string | null;
   idempotencyKey: string | null;
+  shippingName: string | null;
+  shippingStreet: string | null;
+  shippingCity: string | null;
+  shippingState: string | null;
+  shippingZip: string | null;
+  shippingCountry: string | null;
   items: OrderItem[];
+  payment?: Payment | null;
   createdAt: string;
   updatedAt: string;
 }
