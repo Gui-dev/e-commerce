@@ -28,9 +28,11 @@ interface Address {
 export function CheckoutForm() {
   const router = useRouter();
   const _user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
   const items = useCartStore((s) => s.items);
   const totalCents = useCartStore((s) => s.totalCents());
   const clearCart = useCartStore((s) => s.clearCart);
+  const syncWithServer = useCartStore((s) => s.syncWithServer);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [address, setAddress] = useState<Address>({
@@ -57,6 +59,10 @@ export function CheckoutForm() {
     setLoading(true);
 
     try {
+      if (token) {
+        await syncWithServer(token);
+      }
+
       const order = await api.post<Order>("/checkout");
 
       await api.post("/payments", {
