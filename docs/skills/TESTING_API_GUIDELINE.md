@@ -38,9 +38,9 @@ modules/<domain>/
 
 Why co-location: the test-to-source mapping is obvious at a glance; refactors move both files together; no guessing where tests live.
 
-### Integration / E2E tests — centralized
+### Integration tests — co-located with source
 
-Tests that spin up containers, hit real databases, or exercise full HTTP routes stay in a shared `tests/integration/` (or `tests/e2e/`) directory, because they are cross-cutting concerns that do not belong to a single source file.
+Tests that hit real databases are co-located alongside their source files (e.g., `checkout.use-case.integration.spec.ts` next to `checkout.use-case.ts`). There is no centralized `tests/integration/` directory in this project.
 
 ## Module Layout (expected structure)
 
@@ -160,78 +160,16 @@ Guidance:
 - Seed preconditions through the repository (`repository.create(...)`) or another use case — never by poking private fields.
 - Assert side effects through the repository's read methods, not by inspecting internals.
 
-## Shared Repository Contract Suites
+## Repository Testing
 
-The same repository contract is implemented twice: once in production (SQL/HTTP) and once in-memory (tests). Both must behave identically. A shared contract suite is a function that asserts the contract's behavior against any implementation:
+Each repository contract has two implementations: a production Drizzle implementation and an in-memory test double. Both are tested independently — there are no shared contract suites in this project.
 
-```typescript
-import { describe, expect, it } from 'vitest'
-
-type TaskRepository = {
-  create(input: { title: string; assigneeId?: string }): Promise<Task>
-  findById(id: string): Promise<Task | null>
-  findByAssignee(assigneeId: string): Promise<Task[]>
-}
-
-export function runTaskRepositoryContractSuite(
-  label: string,
-  makeRepository: () => Promise<TaskRepository>,
-) {
-  describe(label, () => {
-    let repository: TaskRepository
-
-    beforeEach(async () => {
-      repository = await makeRepository()
-    })
-
-    it('should store and retrieve a task by id', async () => {
-      const created = await repository.create({ title: 'A' })
-
-      const found = await repository.findById(created.id)
-
-      expect(found).toBeDefined()
-      expect(found?.title).toBe('A')
-    })
-
-    it('should return empty list when nothing matches', async () => {
-      expect(await repository.findByAssignee('nobody')).toEqual([])
-    })
-
-    it('should filter by assignee', async () => {
-      await repository.create({ title: 'A', assigneeId: 'user-1' })
-      await repository.create({ title: 'B', assigneeId: 'user-2' })
-
-      const tasks = await repository.findByAssignee('user-1')
-
-      expect(tasks.map((t) => t.title)).toEqual(['A'])
-    })
-  })
-}
-```
-
-Unit spec (calls in-memory):
-
-```typescript
-runTaskRepositoryContractSuite('InMemoryTaskRepository', async () => {
-  return new InMemoryTaskRepository()
-})
-```
-
-Integration spec (calls real implementation — belongs in `tests/integration/`):
-
-```typescript
-runTaskRepositoryContractSuite('DrizzleTaskRepository', async () => {
-  const db = await createDb()
-  await migrate(db)
-  return new DrizzleTaskRepository(db)
-})
-```
-
-This catches implementation drift: both the in-memory and the production repo must pass the same assertions.
+- **In-memory tests** exercise the in-memory repository directly (fast, no I/O).
+- **Drizzle tests** hit the `kronostore_test` database directly (integration, requires running Postgres).
 
 ## Writing In-Memory Repository Tests
 
-In addition to the shared contract suite, test in-memory-specific behavior (seeding helpers, edge cases of the in-memory data structure):
+Test in-memory-specific behavior: CRUD paths, edge cases, empty results, filtering, and the in-memory data structure:
 
 ```typescript
 describe('InMemoryTaskRepository', () => {
@@ -330,7 +268,6 @@ Paths like `src/lib/abilities/**` (cross-cutting business rules) may also be inc
 ## Definition of Done (for a use case)
 
 - [ ] Contract defined (or extended) first; production + in-memory implementations exist.
-- [ ] Shared contract suite covers the contract's behavior.
 - [ ] Domain error thrown as typed `DomainError` (not raw `Error`).
 - [ ] Success, validation, and side-effect tests written before the implementation (TDD).
 - [ ] All previously passing tests still pass.
@@ -340,9 +277,10 @@ Paths like `src/lib/abilities/**` (cross-cutting business rules) may also be inc
 ## Commands (adapt to your project)
 
 ```bash
-pnpm <api-package> test            # unit suite
-pnpm <api-package> test:watch      # watch mode
-pnpm <api-package> test:coverage   # coverage report
+pnpm --filter @kronostore/api test           # unit suite
+pnpm --filter @kronostore/api typecheck      # type checking
+pnpm --filter @kronostore/api test:watch     # watch mode
+pnpm --filter @kronostore/api test:coverage  # coverage report
 ```
 
 ## Full Worked Example

@@ -408,10 +408,11 @@ E2E tests cover critical journeys but are not measured by coverage tools — the
 ## Commands (adapt to your project)
 
 ```bash
-pnpm <web-package> test:unit        # vitest run src
-pnpm <web-package> test:watch       # vitest watch
-pnpm <web-package> test:coverage    # coverage report
-pnpm <web-package> test:e2e         # playwright test
+pnpm --filter @kronostore/web test           # vitest run (unit tests)
+pnpm --filter @kronostore/web typecheck      # type checking
+pnpm --filter @kronostore/web test:watch     # vitest watch
+pnpm --filter @kronostore/web test:coverage  # coverage report
+pnpm --filter @kronostore/web test:e2e       # playwright test
 ```
 
 ## Full Worked Example

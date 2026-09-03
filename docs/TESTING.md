@@ -6,68 +6,115 @@ Project-specific deviations from the generic skills:
 
 This file records how each skill maps to this repository.
 
-## Deviations
+## API Testing
 
-1. **Test file suffix:** `.spec.ts` (not `.test.ts`) — unit tests co-located at `apps/api/src/**/*.spec.ts`; integration tests at `apps/api/tests/integration/*.spec.ts`.
-2. **Location:** unit tests are co-located with the files they test (same directory, same base name). Integration tests (Testcontainers, full HTTP) are centralized in `apps/api/tests/integration/`.
-3. **Scope:** the pattern applies only to domain modules we write (`modules/<domain>/` with `domain/` contract, `infra/` implementations, `use-cases/`). Persistence owned by Better Auth (organizations, members, sessions) stays outside the pattern.
-4. **Production repositories:** `Drizzle*Repository` classes are not unit-tested — they are covered by integration tests (`pnpm --filter @pm/api test:integration`), which exercise routes + real SQL.
-5. **Shared contract suites:** when both in-memory and Drizzle implementations exist, a shared `*-contract-test.ts` file is written once and called by both the unit spec (in-memory) and integration spec (Drizzle), ensuring identical behavior.
+### Deviations
 
-## Commands
+1. **Test file suffix:** `.spec.ts` (not `.test.ts`) — all tests co-located at `apps/api/src/**/*.spec.ts`.
+2. **No shared contract suites:** the shared contract test pattern from the guideline does NOT exist in this project. In-memory and Drizzle repositories are tested independently.
+3. **Integration via real DB:** integration tests use `kronostore_test` database directly (no Testcontainers). Tests that need a database use `apps/api/src/lib/db/test-helpers.ts` (`resetDatabase`, `seedTestData`) and `apps/api/src/lib/db/test-db.ts`.
+4. **No centralized integration directory:** `apps/api/tests/integration/` does not exist. Integration-style specs (e.g., `checkout.use-case.integration.spec.ts`) live co-located with their source.
+5. **Scope:** hexagonal pattern applies to domain modules under `modules/<domain>/`. Persistence owned by Better Auth stays outside the pattern.
+
+### File Structure
+
+```
+apps/api/src/
+├── lib/db/
+│   ├── test-db.ts              # Drizzle client for kronostore_test
+│   ├── test-helpers.ts         # resetDatabase, seedTestData, TEST_* constants
+│   └── transaction.ts          # withTransaction, getTransactionClient (AsyncLocalStorage)
+├── modules/<domain>/
+│   ├── domain/
+│   │   ├── <entity>.ts         # Types, DomainError classes
+│   │   └── <entity>-repository.ts  # Repository contract (interface)
+│   ├── infra/
+│   │   ├── drizzle-<entity>-repository.ts   # Production (real DB)
+│   │   └── in-memory-<entity>-repository.ts # Test double
+│   ├── use-cases/
+│   │   ├── <verb>-<noun>.use-case.ts
+│   │   └── <verb>-<noun>.use-case.spec.ts   # Co-located unit tests
+│   ├── schemas/
+│   │   └── <entity>.schema.ts
+│   └── routes/
+│       └── index.ts
+```
+
+### Commands
 
 ```bash
-export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock   # podman socket for Testcontainers
-
-pnpm test                                # unit suite (turbo)
-pnpm --filter @pm/api test:unit          # unit only (vitest run src)
-pnpm --filter @pm/api test:integration   # integration (spins Postgres/Redis containers)
-pnpm --filter @pm/web test:e2e           # e2e (requires compose stack + pnpm dev running)
-pnpm --filter @pm/api test:coverage      # coverage report with threshold enforcement
+pnpm --filter @kronostore/api test           # vitest run (all unit tests)
+pnpm --filter @kronostore/api typecheck      # tsc --noEmit
+pnpm --filter @kronostore/api test:watch     # vitest watch
+pnpm --filter @kronostore/api test:coverage  # vitest run --coverage
 ```
 
-## Reference Implementation
+### In-Memory Repositories
 
-The pattern is implemented in `apps/api/src/modules/organizations/`:
+Available at `apps/api/src/modules/*/infra/in-memory-*-repository.ts`:
 
-```
-modules/organizations/
-├── domain/
-│   ├── organization-member.ts            # OrgMember types + OrganizationsRepositoryContract
-│   └── organization-member.spec.ts       # co-located domain tests (if any)
-├── infra/
-│   ├── drizzle-organization-repository.ts
-│   ├── in-memory-organization-repository.ts
-│   ├── in-memory-organization-repository.spec.ts   # co-located + shared contract suite
-│   └── organizations-repository.contract-test.ts   # shared contract assertions
-└── use-cases/
-    ├── list-organization-members.use-case.ts
-    └── list-organization-members.use-case.spec.ts  # co-located
-```
+- categories, products, cart, coupons, orders, payments, stock, emails, webhooks, users
+
+### Test Helpers
+
+`apps/api/src/lib/db/test-helpers.ts`:
+- `resetDatabase()` — truncates all tables with CASCADE
+- `seedTestData()` — inserts category, product, variant, stock with deterministic IDs
+- `TEST_CATEGORY_ID`, `TEST_PRODUCT_ID`, `TEST_VARIANT_ID`, `TEST_STOCK_ID`
+
+### Coverage
+
+~278 tests across 37 files.
 
 ---
 
 ## Frontend Testing
 
-Guideline: [`docs/skills/TESTING_FRONTEND_GUIDELINE.md`](./skills/TESTING_FRONTEND_GUIDELINE.md)
-
 ### Deviations
 
-1. **E2E only (current state):** the web app currently has only Playwright E2E tests. Unit/component testing (Vitest + RTL + MSW) is not yet installed — the guideline documents the target setup for when it is added.
+1. **Unit testing IS installed:** Vitest + React Testing Library + MSW v2 is fully configured and working. Unit tests are co-located at `apps/web/src/**/*.spec.{ts,tsx}`.
 2. **E2E test location:** `apps/web/tests/e2e/*.spec.ts` (centralized, per Playwright convention).
-3. **E2E helpers:** `apps/web/tests/e2e/helpers/mailpit.ts` — polls MailPit API for emails, extracts verification/reset links. Used across all E2E specs.
+3. **E2E helpers:** `apps/web/tests/e2e/helpers/mailpit.ts` — polls MailPit API for emails.
 4. **Base URL:** E2E tests run against `http://localhost:3000` (Next.js dev server). The API at `http://localhost:3001` must be running.
-5. **Auth in E2E:** tests create users through the UI (sign-up flow + email verification via MailPit) — no programmatic auth seeding.
+5. **Auth in E2E:** users are registered via API (`/auth/sign-up`), then logged in via UI (`/login`). No MailPit email verification flow in E2E.
+6. **Webhook HMAC in E2E:** checkout-flow tests compute HMAC-SHA256 signatures and POST to `/webhooks/payment` with `x-webhook-signature` header. Requires `WEBHOOK_SECRET` env var.
+
+### Vitest Config
+
+- `apps/web/vitest.config.ts`: jsdom, globals, `setupFiles: ['./src/test/setup.ts']`, alias `@` → `src`
+- `apps/web/src/test/setup.ts`: jest-dom matchers, MSW server lifecycle, localStorage mock
+
+### MSW Handlers
+
+Located at `apps/web/src/mocks/handlers/`:
+- `products.ts`
+- `cart.ts`
+- `auth.ts`
+
+### Unit Test Files
+
+- `apps/web/src/components/product/product-card.spec.tsx`
+- `apps/web/src/components/product/product-grid.spec.tsx`
+- `apps/web/src/components/checkout/checkout-form.spec.tsx`
+- `apps/web/src/lib/cart-sync.spec.ts`
+- `apps/web/src/stores/cart-store.spec.ts`
+
+### E2E Test Files
+
+- `apps/web/tests/e2e/browse-products.spec.ts`
+- `apps/web/tests/e2e/cart-flow.spec.ts`
+- `apps/web/tests/e2e/checkout-flow.spec.ts` (includes webhook HMAC test)
 
 ### Commands
 
 ```bash
-pnpm --filter @pm/web test:e2e           # playwright test (requires compose stack + pnpm dev)
-pnpm --filter @pm/web test:unit          # vitest run src (not yet configured — see guideline)
+pnpm --filter @kronostore/web test           # vitest run (unit tests)
+pnpm --filter @kronostore/web typecheck      # tsc --noEmit
+pnpm --filter @kronostore/web test:watch     # vitest watch
+pnpm --filter @kronostore/web test:coverage  # vitest run --coverage
+pnpm --filter @kronostore/web test:e2e       # playwright test
 ```
 
-### Reference
+### Coverage
 
-E2E tests: `apps/web/tests/e2e/auth.spec.ts`, `apps/web/tests/e2e/organizations.spec.ts`
-Helpers: `apps/web/tests/e2e/helpers/mailpit.ts`
-Config: `apps/web/playwright.config.ts`
+~33 unit tests across 5 files + 3 E2E test files.
