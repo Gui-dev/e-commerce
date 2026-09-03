@@ -142,6 +142,14 @@ export class DrizzleOrderRepository implements OrderRepository {
     return rows.map(mapOrderItem);
   }
 
+  async findItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+    const rows = await this.db
+      .select()
+      .from(orderItemsTable)
+      .where(eq(orderItemsTable.orderId, orderId));
+    return rows.map(mapOrderItem);
+  }
+
   async updateStatus(id: string, status: Order["status"]): Promise<Order> {
     const existing = await this.findById(id);
     if (!existing) throw new OrderNotFoundError(id);

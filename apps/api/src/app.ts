@@ -29,6 +29,7 @@ import { InMemoryStockRepository } from "./modules/stock/infra/in-memory-stock-r
 import { createAdminStockRoutes } from "./modules/stock/routes/admin.js";
 import { InMemoryUserRepository } from "./modules/users/infra/in-memory-user-repository.js";
 import { createAdminUserRoutes } from "./modules/users/routes/admin.js";
+import { createWebhookRoutes } from "./modules/webhooks/routes/index.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -80,6 +81,7 @@ export async function buildApp() {
   await app.register(createCartRoutes(cartRepository, stockRepository));
 
   const orderRepository = new InMemoryOrderRepository();
+  const paymentRepository = new InMemoryPaymentRepository();
   await app.register(
     createCheckoutRoutes(
       orderRepository,
@@ -87,10 +89,10 @@ export async function buildApp() {
       stockRepository,
       couponRepository,
       productRepository,
+      paymentRepository,
     ),
   );
 
-  const paymentRepository = new InMemoryPaymentRepository();
   await app.register(createPaymentRoutes(paymentRepository));
 
   const emailRepository = new InMemoryEmailRepository();
@@ -107,6 +109,8 @@ export async function buildApp() {
 
   const userRepository = new InMemoryUserRepository();
   await app.register(createAdminUserRoutes(userRepository));
+
+  await app.register(createWebhookRoutes(paymentRepository, orderRepository));
 
   app.get("/health", async () => ({ status: "ok" }));
 

@@ -4,6 +4,7 @@ import { requireAuth } from "../../../middleware/auth.js";
 import { idempotencyMiddleware } from "../../../middleware/idempotency.js";
 import type { CartRepository } from "../../cart/domain/cart-repository.js";
 import type { CouponRepository } from "../../coupons/domain/coupon-repository.js";
+import type { PaymentRepository } from "../../payments/domain/payment-repository.js";
 import type { ProductRepository } from "../../products/domain/product-repository.js";
 import type { StockRepository } from "../../stock/domain/stock-repository.js";
 import type { OrderRepository } from "../domain/order-repository.js";
@@ -20,6 +21,7 @@ export function createCheckoutRoutes(
   stockRepository: StockRepository,
   couponRepository: CouponRepository,
   productRepository: ProductRepository,
+  paymentRepository: PaymentRepository,
 ) {
   return async function checkoutRoutes(app: FastifyInstance) {
     const checkout = new CheckoutUseCase(
@@ -89,7 +91,9 @@ export function createCheckoutRoutes(
         if (!order || order.userId !== request.user.id) {
           return reply.code(404).send({ error: "NOT_FOUND", message: "Order not found" });
         }
-        return reply.send(order);
+        const items = await orderRepository.findItemsByOrderId(id);
+        const payment = await paymentRepository.findByOrderId(id);
+        return reply.send({ ...order, items, payment });
       },
     );
   };

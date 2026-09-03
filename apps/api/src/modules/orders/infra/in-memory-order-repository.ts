@@ -69,6 +69,10 @@ export class InMemoryOrderRepository implements OrderRepository {
     return created;
   }
 
+  async findItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+    return Array.from(this.items.values()).filter((item) => item.orderId === orderId);
+  }
+
   async updateStatus(id: string, status: Order["status"]): Promise<Order> {
     const order = this.orders.get(id);
     if (!order) throw new OrderNotFoundError(id);
