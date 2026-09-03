@@ -1,6 +1,7 @@
 import { server } from "@/mocks/server";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
+import { mockVariant } from "@/test/fixtures/cart";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -22,25 +23,13 @@ vi.mock("next/image", () => ({
   ),
 }));
 
-const mockVariant = {
-  id: "var-1",
-  name: "Default",
-  sku: "WH-001",
-  priceCents: 9990,
-  product: {
-    id: "prod-1",
-    name: "Wireless Headphones",
-    slug: "wireless-headphones",
-    imageUrl: "https://example.com/headphones.jpg",
-  },
-};
-
 function addItemToCart() {
   useCartStore.getState().addItem(mockVariant);
 }
 
 describe("<CheckoutForm />", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     useCartStore.setState({ items: [] });
     useAuthStore.setState({ token: null, isAuthenticated: false, user: null });
     localStorage.clear();

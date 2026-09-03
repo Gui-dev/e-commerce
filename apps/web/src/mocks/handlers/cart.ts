@@ -2,8 +2,6 @@ import { http, HttpResponse } from "msw";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-let cartItemCounter = 0;
-
 export const cartHandlers = [
   http.post(`${API_URL}/cart/items`, async ({ request }) => {
     const authHeader = request.headers.get("Authorization");
@@ -15,10 +13,9 @@ export const cartHandlers = [
     }
 
     const body = (await request.json()) as { variantId: string; quantity: number };
-    cartItemCounter++;
 
     return HttpResponse.json({
-      id: `server-item-${cartItemCounter}`,
+      id: `server-item-${body.variantId}`,
       variantId: body.variantId,
       quantity: body.quantity,
     });

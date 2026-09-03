@@ -20,8 +20,8 @@ describe("syncCartWithServer", () => {
 
     expect(mapping).toBeInstanceOf(Map);
     expect(mapping.size).toBe(2);
-    expect(mapping.get("var-1")).toBe("server-item-1");
-    expect(mapping.get("var-2")).toBe("server-item-2");
+    expect(mapping.get("var-1")).toBe("server-item-var-1");
+    expect(mapping.get("var-2")).toBe("server-item-var-2");
   });
 
   it("should include the Bearer token in the request", async () => {

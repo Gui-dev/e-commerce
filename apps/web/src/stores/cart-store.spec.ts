@@ -1,32 +1,6 @@
-import type { CartItem } from "@/types";
+import { mockVariant, mockVariant2 } from "@/test/fixtures/cart";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useCartStore } from "./cart-store";
-
-const mockVariant: CartItem["variant"] = {
-  id: "var-1",
-  name: "Default",
-  sku: "WH-001",
-  priceCents: 9990,
-  product: {
-    id: "prod-1",
-    name: "Wireless Headphones",
-    slug: "wireless-headphones",
-    imageUrl: "https://example.com/headphones.jpg",
-  },
-};
-
-const mockVariant2: CartItem["variant"] = {
-  id: "var-2",
-  name: "Pro",
-  sku: "WH-002",
-  priceCents: 14990,
-  product: {
-    id: "prod-1",
-    name: "Wireless Headphones",
-    slug: "wireless-headphones",
-    imageUrl: "https://example.com/headphones.jpg",
-  },
-};
 
 describe("useCartStore", () => {
   beforeEach(() => {
