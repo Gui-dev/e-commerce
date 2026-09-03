@@ -10,24 +10,24 @@ import Fastify from "fastify";
 import { env } from "./env.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { authRoutes } from "./modules/auth/routes.js";
-import { InMemoryCartRepository } from "./modules/cart/infra/in-memory-cart-repository.js";
+import { DrizzleCartRepository } from "./modules/cart/infra/drizzle-cart-repository.js";
 import { createCartRoutes } from "./modules/cart/routes/index.js";
-import { InMemoryCategoryRepository } from "./modules/categories/infra/in-memory-category-repository.js";
+import { DrizzleCategoryRepository } from "./modules/categories/infra/drizzle-category-repository.js";
 import { createCategoryRoutes } from "./modules/categories/routes/index.js";
-import { InMemoryCouponRepository } from "./modules/coupons/infra/in-memory-coupon-repository.js";
+import { DrizzleCouponRepository } from "./modules/coupons/infra/drizzle-coupon-repository.js";
 import { createCouponRoutes } from "./modules/coupons/routes/index.js";
-import { InMemoryEmailRepository } from "./modules/emails/infra/in-memory-email-repository.js";
+import { DrizzleEmailRepository } from "./modules/emails/infra/drizzle-email-repository.js";
 import { createEmailRoutes } from "./modules/emails/routes/index.js";
-import { InMemoryOrderRepository } from "./modules/orders/infra/in-memory-order-repository.js";
+import { DrizzleOrderRepository } from "./modules/orders/infra/drizzle-order-repository.js";
 import { createAdminOrderRoutes } from "./modules/orders/routes/admin.js";
 import { createCheckoutRoutes } from "./modules/orders/routes/index.js";
-import { InMemoryPaymentRepository } from "./modules/payments/infra/in-memory-payment-repository.js";
+import { DrizzlePaymentRepository } from "./modules/payments/infra/drizzle-payment-repository.js";
 import { createPaymentRoutes } from "./modules/payments/routes/index.js";
-import { InMemoryProductRepository } from "./modules/products/infra/in-memory-product-repository.js";
+import { DrizzleProductRepository } from "./modules/products/infra/drizzle-product-repository.js";
 import { createProductRoutes } from "./modules/products/routes/index.js";
-import { InMemoryStockRepository } from "./modules/stock/infra/in-memory-stock-repository.js";
+import { DrizzleStockRepository } from "./modules/stock/infra/drizzle-stock-repository.js";
 import { createAdminStockRoutes } from "./modules/stock/routes/admin.js";
-import { InMemoryUserRepository } from "./modules/users/infra/in-memory-user-repository.js";
+import { DrizzleUserRepository } from "./modules/users/infra/drizzle-user-repository.js";
 import { createAdminUserRoutes } from "./modules/users/routes/admin.js";
 import { createWebhookRoutes } from "./modules/webhooks/routes/index.js";
 
@@ -72,16 +72,16 @@ export async function buildApp() {
 
   await app.register(authRoutes);
 
-  const productRepository = new InMemoryProductRepository();
+  const productRepository = new DrizzleProductRepository();
   await app.register(createProductRoutes(productRepository));
 
-  const cartRepository = new InMemoryCartRepository();
-  const stockRepository = new InMemoryStockRepository();
-  const couponRepository = new InMemoryCouponRepository();
+  const cartRepository = new DrizzleCartRepository();
+  const stockRepository = new DrizzleStockRepository();
+  const couponRepository = new DrizzleCouponRepository();
   await app.register(createCartRoutes(cartRepository, stockRepository));
 
-  const orderRepository = new InMemoryOrderRepository();
-  const paymentRepository = new InMemoryPaymentRepository();
+  const orderRepository = new DrizzleOrderRepository();
+  const paymentRepository = new DrizzlePaymentRepository();
   await app.register(
     createCheckoutRoutes(
       orderRepository,
@@ -95,10 +95,10 @@ export async function buildApp() {
 
   await app.register(createPaymentRoutes(paymentRepository));
 
-  const emailRepository = new InMemoryEmailRepository();
+  const emailRepository = new DrizzleEmailRepository();
   await app.register(createEmailRoutes(emailRepository));
 
-  const categoryRepository = new InMemoryCategoryRepository();
+  const categoryRepository = new DrizzleCategoryRepository();
   await app.register(createCategoryRoutes(categoryRepository));
 
   await app.register(createCouponRoutes(couponRepository));
@@ -107,7 +107,7 @@ export async function buildApp() {
 
   await app.register(createAdminStockRoutes(stockRepository));
 
-  const userRepository = new InMemoryUserRepository();
+  const userRepository = new DrizzleUserRepository();
   await app.register(createAdminUserRoutes(userRepository));
 
   await app.register(createWebhookRoutes(paymentRepository, orderRepository));
