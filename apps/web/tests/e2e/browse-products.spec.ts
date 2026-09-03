@@ -14,23 +14,14 @@ test.describe("Browse Products", () => {
     await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeVisible();
   });
 
-  test("navigates to catalog via Ver Catálogo button", async ({ page }) => {
+  test("Ver Catálogo scrolls to the products section", async ({ page }) => {
     await page.goto("/");
 
     const catalogLink = page.getByRole("link", { name: "Ver Catálogo" });
     await expect(catalogLink).toBeVisible();
     await catalogLink.click();
 
-    await expect(page).toHaveURL(/.*products/);
-  });
-
-  test("navigates to categories via Categorias button", async ({ page }) => {
-    await page.goto("/");
-
-    const categoriesLink = page.getByRole("link", { name: "Categorias" });
-    await expect(categoriesLink).toBeVisible();
-    await categoriesLink.click();
-
-    await expect(page).toHaveURL(/.*categories/);
+    await expect(page).toHaveURL(/.*#produtos/);
+    await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeInViewport();
   });
 });

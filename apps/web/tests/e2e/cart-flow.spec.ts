@@ -20,9 +20,18 @@ test.describe("Cart Flow", () => {
 
   test("can add product to cart and view it", async ({ page }) => {
     await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeVisible();
 
-    const addButton = page.getByRole("button", { name: "+ Comprar" }).first();
+    const productLink = page.getByRole("link", { name: /Comprar/ }).first();
+    await productLink.click();
+
+    await expect(page).toHaveURL(/\/product\//);
+
+    const addButton = page.getByRole("button", { name: "+ Comprar" });
+    await expect(addButton).toBeVisible();
     await addButton.click();
+
+    await expect(page.getByText("Adicionado!")).toBeVisible();
 
     await page.goto("/cart");
 
@@ -32,9 +41,18 @@ test.describe("Cart Flow", () => {
 
   test("can clear cart", async ({ page }) => {
     await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeVisible();
 
-    const addButton = page.getByRole("button", { name: "+ Comprar" }).first();
+    const productLink = page.getByRole("link", { name: /Comprar/ }).first();
+    await productLink.click();
+
+    await expect(page).toHaveURL(/\/product\//);
+
+    const addButton = page.getByRole("button", { name: "+ Comprar" });
+    await expect(addButton).toBeVisible();
     await addButton.click();
+
+    await expect(page.getByText("Adicionado!")).toBeVisible();
 
     await page.goto("/cart");
 
