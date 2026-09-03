@@ -15,6 +15,17 @@ vi.mock("../../../queues/email.queue.js", async () => {
   };
 });
 
+const passthrough = async <T>(fn: (tx: unknown) => Promise<T>): Promise<T> => fn(undefined);
+
+const address = {
+  name: "John Doe",
+  street: "Rua das Flores, 123",
+  city: "São Paulo",
+  state: "SP",
+  zip: "01000-000",
+  country: "BR",
+};
+
 describe("CheckoutUseCase", () => {
   let orderRepository: InMemoryOrderRepository;
   let cartRepository: InMemoryCartRepository;
@@ -50,6 +61,7 @@ describe("CheckoutUseCase", () => {
       stockRepository,
       couponRepository,
       productRepository,
+      passthrough,
     );
   });
 
@@ -58,7 +70,11 @@ describe("CheckoutUseCase", () => {
     const cart = await cartRepository.create("user-001");
     await cartRepository.addItem(cart.id, { variantId: "var-001", quantity: 2 });
 
-    const order = await useCase.execute({ userId: "user-001", userEmail: "user@example.com" });
+    const order = await useCase.execute({
+      userId: "user-001",
+      userEmail: "user@example.com",
+      address,
+    });
 
     expect(order.id).toBeDefined();
     expect(order.status).toBe("pending");
@@ -67,7 +83,7 @@ describe("CheckoutUseCase", () => {
 
   it("should throw EmptyCartError for empty cart", async () => {
     await expect(
-      useCase.execute({ userId: "user-001", userEmail: "user@example.com" }),
+      useCase.execute({ userId: "user-001", userEmail: "user@example.com", address }),
     ).rejects.toThrow(EmptyCartError);
   });
 
@@ -79,11 +95,13 @@ describe("CheckoutUseCase", () => {
     const order1 = await useCase.execute({
       userId: "user-001",
       userEmail: "user@example.com",
+      address,
       idempotencyKey: "idem-001",
     });
     const order2 = await useCase.execute({
       userId: "user-001",
       userEmail: "user@example.com",
+      address,
       idempotencyKey: "idem-001",
     });
 
@@ -95,9 +113,38 @@ describe("CheckoutUseCase", () => {
     const cart = await cartRepository.create("user-001");
     await cartRepository.addItem(cart.id, { variantId: "var-001", quantity: 3 });
 
-    await useCase.execute({ userId: "user-001", userEmail: "user@example.com" });
+    await useCase.execute({ userId: "user-001", userEmail: "user@example.com", address });
 
     const stock = await stockRepository.findByVariantId("var-001");
     expect(stock?.quantity).toBe(7);
+  });
+
+  it("should not commit an order when stock reservation fails", async () => {
+    await stockRepository.create("var-001", 1);
+    const cart = await cartRepository.create("user-001");
+    await cartRepository.addItem(cart.id, { variantId: "var-001", quantity: 5 });
+
+    await expect(
+      useCase.execute({ userId: "user-001", userEmail: "user@example.com", address }),
+    ).rejects.toThrow();
+
+    const orders = await orderRepository.findByUserId("user-001");
+    expect(orders).toHaveLength(0);
+
+    const stock = await stockRepository.findByVariantId("var-001");
+    expect(stock?.quantity).toBe(1);
+  });
+
+  it("should not send order confirmation email when checkout fails", async () => {
+    mockAdd.mockClear();
+    await stockRepository.create("var-001", 1);
+    const cart = await cartRepository.create("user-001");
+    await cartRepository.addItem(cart.id, { variantId: "var-001", quantity: 10 });
+
+    await expect(
+      useCase.execute({ userId: "user-001", userEmail: "user@example.com", address }),
+    ).rejects.toThrow();
+
+    expect(mockAdd).not.toHaveBeenCalled();
   });
 });

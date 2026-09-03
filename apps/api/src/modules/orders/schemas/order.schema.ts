@@ -1,6 +1,15 @@
 import { z } from "zod";
 
-export const checkoutSchema = z.object({});
+export const checkoutSchema = z.object({
+  address: z.object({
+    name: z.string(),
+    street: z.string(),
+    city: z.string(),
+    state: z.string().length(2),
+    zip: z.string(),
+    country: z.string().length(2).default("BR"),
+  }),
+});
 
 export const createPaymentSchema = z.object({
   orderId: z.string().uuid(),

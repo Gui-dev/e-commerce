@@ -48,6 +48,7 @@ export function createCheckoutRoutes(
         const order = await checkout.execute({
           userId: request.user.id,
           userEmail: request.user.email,
+          address: request.body.address,
           idempotencyKey,
         });
 
