@@ -10,6 +10,8 @@ declare module "fastify" {
 
 type PreParsingPayload = RequestPayload;
 
+export const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
+
 export const captureRawBody = (
   request: FastifyRequest,
   _reply: FastifyReply,
@@ -17,6 +19,7 @@ export const captureRawBody = (
   done: (err?: Error | null, body?: PreParsingPayload) => void,
 ) => {
   const chunks: Buffer[] = [];
+  let receivedBytes = 0;
   if (Buffer.isBuffer(payload)) {
     request.rawBody = payload;
     done(null, payload);
@@ -27,7 +30,13 @@ export const captureRawBody = (
     done(null, payload);
     return;
   }
-  payload.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+  payload.on("data", (chunk: Buffer) => {
+    chunks.push(Buffer.from(chunk));
+    receivedBytes += chunk.length;
+    if (receivedBytes > MAX_WEBHOOK_BODY_BYTES) {
+      payload.destroy(new Error("Webhook body exceeds maximum allowed size"));
+    }
+  });
   payload.on("end", () => {
     request.rawBody = Buffer.concat(chunks);
     done(null, Readable.from(Buffer.concat(chunks)));
@@ -43,6 +52,12 @@ export const verifyWebhookSignature: preHandlerHookHandler = async (
   const signature = request.headers["x-webhook-signature"];
 
   if (!secret || typeof signature !== "string" || signature.length === 0 || !request.rawBody) {
+    return reply
+      .code(401)
+      .send({ error: "INVALID_SIGNATURE", message: "Invalid webhook signature" });
+  }
+
+  if (!/^[0-9a-fA-F]+$/.test(signature)) {
     return reply
       .code(401)
       .send({ error: "INVALID_SIGNATURE", message: "Invalid webhook signature" });

@@ -125,6 +125,52 @@ describe("Payment webhook routes", () => {
     });
   });
 
+  it("should reject request with empty signature header", async () => {
+    const payment = await createPayment();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/webhooks/payment",
+      headers: { "x-webhook-signature": "" },
+      payload: {
+        provider: "test-provider",
+        event: "payment.approved",
+        paymentId: payment.id,
+        externalId: "ext-001",
+        status: "approved",
+      },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.json()).toEqual({
+      error: "INVALID_SIGNATURE",
+      message: "Invalid webhook signature",
+    });
+  });
+
+  it("should reject request with non-hex signature", async () => {
+    const payment = await createPayment();
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/webhooks/payment",
+      headers: { "x-webhook-signature": "not-hex-signature" },
+      payload: {
+        provider: "test-provider",
+        event: "payment.approved",
+        paymentId: payment.id,
+        externalId: "ext-001",
+        status: "approved",
+      },
+    });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.json()).toEqual({
+      error: "INVALID_SIGNATURE",
+      message: "Invalid webhook signature",
+    });
+  });
+
   it("should process an approved webhook with valid signature", async () => {
     const payment = await createPayment();
     const payload = {
