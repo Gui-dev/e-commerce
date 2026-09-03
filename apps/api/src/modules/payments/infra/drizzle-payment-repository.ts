@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import { payments as paymentsTable } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type {
   CreatePaymentInput,
   Payment,
@@ -25,10 +26,14 @@ function mapPayment(row: typeof paymentsTable.$inferSelect): Payment {
 }
 
 export class DrizzlePaymentRepository implements PaymentRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findById(id: string): Promise<Payment | null> {

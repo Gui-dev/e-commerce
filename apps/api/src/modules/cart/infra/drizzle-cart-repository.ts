@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import { cartItems, carts } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type {
   AddToCartInput,
   Cart,
@@ -34,10 +35,14 @@ function mapCartItemRow(row: typeof cartItems.$inferSelect): CartItem {
 }
 
 export class DrizzleCartRepository implements CartRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findByUserId(userId: string): Promise<Cart | null> {

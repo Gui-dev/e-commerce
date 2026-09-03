@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import { orderItems as orderItemsTable, orders as ordersTable } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type {
   CreateOrderInput,
   Order,
@@ -49,10 +50,14 @@ function mapOrderRow(row: OrderRow): Order {
 }
 
 export class DrizzleOrderRepository implements OrderRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findById(id: string): Promise<Order | null> {

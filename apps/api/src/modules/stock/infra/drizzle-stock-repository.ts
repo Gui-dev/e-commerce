@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import { stock, stockMovements } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type { Stock, StockMovement, StockRepository } from "../domain/stock-repository.js";
 import { InsufficientStockError, StockNotFoundError } from "../domain/stock.js";
 
@@ -29,10 +30,14 @@ function mapMovement(row: typeof stockMovements.$inferSelect): StockMovement {
 }
 
 export class DrizzleStockRepository implements StockRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findByVariantId(variantId: string): Promise<Stock | null> {

@@ -8,6 +8,7 @@ import {
   stock,
   stockMovements,
 } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type {
   CreateProductInput,
   Product,
@@ -53,10 +54,14 @@ function mapVariant(row: typeof productVariants.$inferSelect): ProductVariant {
 }
 
 export class DrizzleProductRepository implements ProductRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findById(id: string): Promise<Product | null> {

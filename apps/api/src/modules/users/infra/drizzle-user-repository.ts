@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import { users } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type { User, UserRepository } from "../domain/user-repository.js";
 
 type DbClient = typeof defaultDb;
@@ -17,10 +18,14 @@ function mapUser(row: typeof users.$inferSelect): User {
 }
 
 export class DrizzleUserRepository implements UserRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findById(id: string): Promise<User | null> {

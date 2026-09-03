@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import { webhookLogs } from "../../../lib/db/schema.js";
+import { getTransactionClient } from "../../../lib/db/transaction.js";
 import type { Webhook, WebhookRepository } from "../domain/webhook-repository.js";
 
 type DbClient = typeof defaultDb;
@@ -16,10 +17,14 @@ function mapWebhook(row: typeof webhookLogs.$inferSelect): Webhook {
 }
 
 export class DrizzleWebhookRepository implements WebhookRepository {
-  private db: DbClient;
+  private explicitTx?: DbClient;
 
   constructor(tx?: DbClient) {
-    this.db = tx ?? defaultDb;
+    this.explicitTx = tx;
+  }
+
+  private get db(): DbClient {
+    return this.explicitTx ?? getTransactionClient() ?? defaultDb;
   }
 
   async findById(id: string): Promise<Webhook | null> {
