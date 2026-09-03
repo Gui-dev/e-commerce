@@ -1,22 +1,20 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Browse Products", () => {
-  test("displays the homepage with hero section", async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto("/");
+  });
 
+  test("displays the homepage with hero section", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "KronoStore" })).toBeVisible();
     await expect(page.getByText("Hardware e periféricos de alta performance")).toBeVisible();
   });
 
   test("displays featured products section", async ({ page }) => {
-    await page.goto("/");
-
     await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeVisible();
   });
 
   test("Ver Catálogo scrolls to the products section", async ({ page }) => {
-    await page.goto("/");
-
     const catalogLink = page.getByRole("link", { name: "Ver Catálogo" });
     await expect(catalogLink).toBeVisible();
     await catalogLink.click();
