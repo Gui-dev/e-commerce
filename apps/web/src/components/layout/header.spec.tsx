@@ -10,11 +10,13 @@ vi.mock("@/stores/cart-store", () => ({
   }),
 }));
 
+const mockUseAuthStore = vi.fn((selector) => {
+  const state = { isAuthenticated: false, user: null };
+  return selector ? selector(state) : state;
+});
+
 vi.mock("@/stores/auth-store", () => ({
-  useAuthStore: vi.fn((selector) => {
-    const state = { isAuthenticated: false, user: null };
-    return selector ? selector(state) : state;
-  }),
+  useAuthStore: (...args: [unknown]) => mockUseAuthStore(...args),
 }));
 
 vi.mock("next-themes", () => ({
@@ -72,5 +74,29 @@ describe("Header", () => {
   it("should show login link when not authenticated", () => {
     render(<Header />);
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/login");
+  });
+
+  it("should show admin link for admin users", () => {
+    mockUseAuthStore.mockImplementation((selector) => {
+      const state = {
+        isAuthenticated: true,
+        user: { id: "1", name: "Admin", email: "admin@test.com", role: "admin" },
+      };
+      return selector ? selector(state) : state;
+    });
+    render(<Header />);
+    expect(screen.getByRole("link", { name: /admin/i })).toHaveAttribute("href", "/admin");
+  });
+
+  it("should not show admin link for non-admin users", () => {
+    mockUseAuthStore.mockImplementation((selector) => {
+      const state = {
+        isAuthenticated: true,
+        user: { id: "1", name: "User", email: "user@test.com", role: "customer" },
+      };
+      return selector ? selector(state) : state;
+    });
+    render(<Header />);
+    expect(screen.queryByRole("link", { name: /admin/i })).not.toBeInTheDocument();
   });
 });
