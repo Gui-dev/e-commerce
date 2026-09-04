@@ -12,7 +12,7 @@ export default function Home() {
             Hardware e periféricos de alta performance
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            <Link href="#produtos">
+            <Link href="/products">
               <Button size="lg">Ver Catálogo</Button>
             </Link>
           </div>
