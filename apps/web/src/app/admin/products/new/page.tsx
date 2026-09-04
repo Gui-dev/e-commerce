@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,12 +102,14 @@ export default function AdminNewProductPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Descricao</Label>
-              <Input
+              <textarea
                 id="description"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 required
                 minLength={10}
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="space-y-2">

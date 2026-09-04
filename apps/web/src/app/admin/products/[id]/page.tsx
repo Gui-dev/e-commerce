@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +14,7 @@ import {
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Category, Product } from "@/types";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -129,12 +129,14 @@ export default function AdminProductEditPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Descricao</Label>
-              <Input
+              <textarea
                 id="description"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 required
                 minLength={10}
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="space-y-2">
@@ -177,11 +179,9 @@ export default function AdminProductEditPage() {
             </div>
             <div className="flex items-center gap-2">
               <Label>Ativo</Label>
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={form.isActive}
-                onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                className="h-4 w-4"
+                onCheckedChange={(checked) => setForm({ ...form, isActive: checked === true })}
               />
             </div>
             <Button type="submit" disabled={submitting}>
