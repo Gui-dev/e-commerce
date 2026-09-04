@@ -111,4 +111,88 @@ describe("ListProductsUseCase", () => {
     const result = await listUseCase.execute({ limit: 100 });
     expect(result.limit).toBe(50);
   });
+
+  it("should filter products by priceMin", async () => {
+    await createUseCase.execute({
+      name: "Cheap Product",
+      description: "A cheap product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 5000,
+      skuPrefix: "CP",
+    });
+    await createUseCase.execute({
+      name: "Expensive Product",
+      description: "An expensive product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 50000,
+      skuPrefix: "EP",
+    });
+
+    const result = await listUseCase.execute({ priceMin: 100 });
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0].name).toBe("Expensive Product");
+  });
+
+  it("should filter products by priceMax", async () => {
+    await createUseCase.execute({
+      name: "Cheap Product",
+      description: "A cheap product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 5000,
+      skuPrefix: "CP",
+    });
+    await createUseCase.execute({
+      name: "Expensive Product",
+      description: "An expensive product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 50000,
+      skuPrefix: "EP",
+    });
+
+    const result = await listUseCase.execute({ priceMax: 100 });
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0].name).toBe("Cheap Product");
+  });
+
+  it("should filter products by both priceMin and priceMax", async () => {
+    await createUseCase.execute({
+      name: "Cheap Product",
+      description: "A cheap product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 5000,
+      skuPrefix: "CP",
+    });
+    await createUseCase.execute({
+      name: "Mid Product",
+      description: "A mid-range product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 25000,
+      skuPrefix: "MP",
+    });
+    await createUseCase.execute({
+      name: "Expensive Product",
+      description: "An expensive product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 50000,
+      skuPrefix: "EP",
+    });
+
+    const result = await listUseCase.execute({ priceMin: 100, priceMax: 300 });
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0].name).toBe("Mid Product");
+  });
+
+  it("should return empty when no products match price range", async () => {
+    await createUseCase.execute({
+      name: "Cheap Product",
+      description: "A cheap product for testing price filter",
+      categoryId: "cat-001",
+      priceCents: 5000,
+      skuPrefix: "CP",
+    });
+
+    const result = await listUseCase.execute({ priceMin: 1000 });
+    expect(result.products).toHaveLength(0);
+    expect(result.total).toBe(0);
+  });
 });

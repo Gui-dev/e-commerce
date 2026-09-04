@@ -3,6 +3,8 @@ import type { Product, ProductRepository } from "../domain/product-repository.js
 export interface ListProductsInput {
   categoryId?: string;
   search?: string;
+  priceMin?: number;
+  priceMax?: number;
   page?: number;
   limit?: number;
 }
@@ -24,6 +26,8 @@ export class ListProductsUseCase {
     const { products, total } = await this.repository.list({
       categoryId: input.categoryId,
       search: input.search,
+      priceMin: input.priceMin,
+      priceMax: input.priceMax,
       page,
       limit,
     });

@@ -30,6 +30,8 @@ export class InMemoryProductRepository implements ProductRepository {
   async list(params: {
     categoryId?: string;
     search?: string;
+    priceMin?: number;
+    priceMax?: number;
     page: number;
     limit: number;
   }): Promise<{ products: Product[]; total: number }> {
@@ -45,6 +47,14 @@ export class InMemoryProductRepository implements ProductRepository {
         (p) =>
           p.name.toLowerCase().includes(search) || p.description.toLowerCase().includes(search),
       );
+    }
+
+    if (params.priceMin !== undefined) {
+      filtered = filtered.filter((p) => p.priceCents >= params.priceMin! * 100);
+    }
+
+    if (params.priceMax !== undefined) {
+      filtered = filtered.filter((p) => p.priceCents <= params.priceMax! * 100);
     }
 
     const total = filtered.length;
