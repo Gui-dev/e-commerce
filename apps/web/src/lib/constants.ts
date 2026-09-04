@@ -27,3 +27,8 @@ export const PAYMENT_STATUS_LABELS: Record<string, string> = {
   rejected: "Rejeitado",
   refunded: "Reembolsado",
 };
+
+export const COUPON_TYPE_LABELS: Record<string, string> = {
+  percentage: "Percentual",
+  fixed: "Fixo",
+};
