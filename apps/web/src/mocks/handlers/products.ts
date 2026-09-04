@@ -1,7 +1,28 @@
-import type { Product } from "@/types";
+import type { Category, Product } from "@/types";
 import { http, HttpResponse } from "msw";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+const mockCategories: Category[] = [
+  {
+    id: "cat-001",
+    name: "Eletrônicos",
+    slug: "eletronicos",
+    description: "Produtos eletrônicos em geral",
+    imageUrl: null,
+    parentId: null,
+    createdAt: "2026-01-01T00:00:00Z",
+  },
+  {
+    id: "cat-002",
+    name: "Roupas",
+    slug: "roupas",
+    description: "Vestuário e acessórios",
+    imageUrl: null,
+    parentId: null,
+    createdAt: "2026-01-01T00:00:00Z",
+  },
+];
 
 const mockProducts: Product[] = [
   {
@@ -70,5 +91,9 @@ export const productsHandlers = [
     }
 
     return HttpResponse.json({ ...product, variants: [] });
+  }),
+
+  http.get(`${API_URL}/categories`, () => {
+    return HttpResponse.json(mockCategories);
   }),
 ];
