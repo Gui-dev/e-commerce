@@ -108,7 +108,7 @@ export default function AdminStockPage() {
                           className="w-32"
                           value={reasons[stock.variantId] || ""}
                           onChange={(e) =>
-                            setQuantities((prev) => ({
+                            setReasons((prev) => ({
                               ...prev,
                               [stock.variantId]: e.target.value,
                             }))
