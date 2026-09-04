@@ -1,4 +1,4 @@
-import { eq, ilike, or, sql } from "drizzle-orm";
+import { eq, gte, ilike, lte, or, sql } from "drizzle-orm";
 import { db as defaultDb } from "../../../lib/db/index.js";
 import {
   cartItems,
@@ -81,6 +81,8 @@ export class DrizzleProductRepository implements ProductRepository {
   async list(params: {
     categoryId?: string;
     search?: string;
+    priceMin?: number;
+    priceMax?: number;
     page: number;
     limit: number;
   }): Promise<{ products: Product[]; total: number }> {
@@ -93,6 +95,16 @@ export class DrizzleProductRepository implements ProductRepository {
     if (params.search) {
       const pattern = `%${params.search}%`;
       conditions.push(or(ilike(products.name, pattern), ilike(products.description, pattern)));
+    }
+
+    if (params.priceMin !== undefined) {
+      const minCents = params.priceMin * 100;
+      conditions.push(gte(products.priceCents, minCents));
+    }
+
+    if (params.priceMax !== undefined) {
+      const maxCents = params.priceMax * 100;
+      conditions.push(lte(products.priceCents, maxCents));
     }
 
     const where = conditions.length > 0 ? sql.join(conditions, sql` AND `) : undefined;
