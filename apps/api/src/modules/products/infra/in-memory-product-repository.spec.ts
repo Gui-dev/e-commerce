@@ -19,4 +19,52 @@ describe("InMemoryProductRepository", () => {
     const found = await repo.findById("non-existent");
     expect(found).toBeNull();
   });
+
+  it("should filter products by priceMin", async () => {
+    const repository = new InMemoryProductRepository();
+    await repository.create({
+      name: "Cheap Product",
+      description: "A cheap product",
+      categoryId: "cat-001",
+      priceCents: 5000,
+      slug: "cheap-product",
+      skuPrefix: "CP",
+    });
+    await repository.create({
+      name: "Expensive Product",
+      description: "An expensive product",
+      categoryId: "cat-001",
+      priceCents: 50000,
+      slug: "expensive-product",
+      skuPrefix: "EP",
+    });
+
+    const result = await repository.list({ priceMin: 100, page: 1, limit: 10 });
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0].name).toBe("Expensive Product");
+  });
+
+  it("should filter products by priceMax", async () => {
+    const repository = new InMemoryProductRepository();
+    await repository.create({
+      name: "Cheap Product",
+      description: "A cheap product",
+      categoryId: "cat-001",
+      priceCents: 5000,
+      slug: "cheap-product",
+      skuPrefix: "CP",
+    });
+    await repository.create({
+      name: "Expensive Product",
+      description: "An expensive product",
+      categoryId: "cat-001",
+      priceCents: 50000,
+      slug: "expensive-product",
+      skuPrefix: "EP",
+    });
+
+    const result = await repository.list({ priceMax: 100, page: 1, limit: 10 });
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0].name).toBe("Cheap Product");
+  });
 });
