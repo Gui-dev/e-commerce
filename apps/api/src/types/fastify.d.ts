@@ -7,7 +7,7 @@ declare module "fastify" {
       id: string;
       email: string;
       name: string;
-      role?: string;
+      role?: string | null;
     };
     session: {
       id: string;
