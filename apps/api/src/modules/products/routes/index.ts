@@ -31,9 +31,16 @@ export function createProductRoutes(repository: ProductRepository) {
         },
       },
       async (request, reply) => {
-        const { categoryId, search, page, limit } = request.query;
+        const { categoryId, search, priceMin, priceMax, page, limit } = request.query;
 
-        const result = await listProducts.execute({ categoryId, search, page, limit });
+        const result = await listProducts.execute({
+          categoryId,
+          search,
+          priceMin,
+          priceMax,
+          page,
+          limit,
+        });
         return reply.send(result);
       },
     );
