@@ -378,6 +378,95 @@ test('user can create a project', async ({ page }) => {
 - **Unique data:** generate unique emails/Names with `Date.now()` + random suffix.
 - **Helpers:** extract reusable logic (email polling, auth setup) into `tests/e2e/helpers/`.
 
+## Admin Components
+
+Admin components follow the same patterns as other components. Key testing considerations:
+
+### Mocking Auth Store for Admin Users
+
+Admin pages require authentication with admin role. Mock the auth store to provide an admin user:
+
+```tsx
+vi.mock("@/stores/auth-store", () => ({
+  useAuthStore: (selector: (s: { user: { role: string } | null; isAuthenticated: boolean }) => unknown) =>
+    selector({ user: { role: "admin" }, isAuthenticated: true }),
+}));
+```
+
+For non-admin user tests:
+
+```tsx
+vi.mock("@/stores/auth-store", () => ({
+  useAuthStore: (selector: (s: { user: { role: string } | null; isAuthenticated: boolean }) => unknown) =>
+    selector({ user: { role: "customer" }, isAuthenticated: true }),
+}));
+```
+
+### Testing Auth Guard Behavior
+
+Admin pages should redirect non-admin users to `/login`. Test this by mocking the auth store with a non-admin user and verifying the redirect:
+
+```tsx
+it("redirects non-admin users to login", async () => {
+  const push = vi.fn();
+  vi.mock("next/navigation", () => ({
+    useRouter: () => ({ push }),
+  }));
+
+  render(<AdminPage />);
+  await waitFor(() => {
+    expect(push).toHaveBeenCalledWith("/login");
+  });
+});
+```
+
+### Testing CRUD Operations
+
+Admin pages typically perform CRUD operations. Use MSW to mock API responses:
+
+```tsx
+import { http, HttpResponse } from "msw";
+import { server } from "@/mocks/server";
+
+// Override handler for specific test
+server.use(
+  http.get("*/admin/orders", () => {
+    return HttpResponse.json([mockOrder]);
+  }),
+);
+```
+
+### Example Admin Test Pattern
+
+Here's a complete example of testing an admin orders list page:
+
+```tsx
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { AdminOrdersPage } from "./page";
+
+vi.mock("@/stores/auth-store", () => ({
+  useAuthStore: (selector: (s: { user: { role: string } | null; isAuthenticated: boolean }) => unknown) =>
+    selector({ user: { role: "admin" }, isAuthenticated: true }),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+describe("AdminOrdersPage", () => {
+  it("renders orders table for admin users", async () => {
+    render(<AdminOrdersPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pedidos")).toBeDefined();
+    });
+
+    expect(screen.getByText("Todos os Pedidos")).toBeDefined();
+  });
+});
+```
+
 ## Coverage Gate
 
 CI should enforce minimum coverage on component and hook paths:
