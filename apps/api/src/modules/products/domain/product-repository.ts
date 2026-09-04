@@ -14,6 +14,8 @@ export interface ProductRepository {
   list(params: {
     categoryId?: string;
     search?: string;
+    priceMin?: number;
+    priceMax?: number;
     page: number;
     limit: number;
   }): Promise<{ products: Product[]; total: number }>;
