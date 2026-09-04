@@ -61,6 +61,49 @@ export function createProductRoutes(repository: ProductRepository) {
       },
     );
 
+    app.withTypeProvider<ZodTypeProvider>().get(
+      "/admin/products",
+      {
+        preHandler: [requireAdmin],
+        schema: {
+          tags: ["Admin - Products"],
+          summary: "Listar todos os produtos (admin)",
+          security: [{ cookieAuth: [] }],
+        },
+      },
+      async () => {
+        const listAdminProducts = new (
+          await import("../use-cases/list-admin-products.use-case.js")
+        ).ListAdminProductsUseCase(repository);
+        return listAdminProducts.execute();
+      },
+    );
+
+    app.withTypeProvider<ZodTypeProvider>().get(
+      "/admin/products/:id",
+      {
+        preHandler: [requireAdmin],
+        schema: {
+          tags: ["Admin - Products"],
+          summary: "Obter produto por ID (admin)",
+          security: [{ cookieAuth: [] }],
+          params: productIdParamsSchema,
+        },
+      },
+      async (request, reply) => {
+        const { id } = request.params;
+        const getProductAdmin = new (
+          await import("../use-cases/get-product-admin.use-case.js")
+        ).GetProductAdminUseCase(repository);
+        try {
+          const product = await getProductAdmin.execute(id);
+          return reply.send(product);
+        } catch {
+          return reply.code(404).send({ error: "NOT_FOUND", message: "Product not found" });
+        }
+      },
+    );
+
     app.withTypeProvider<ZodTypeProvider>().post(
       "/admin/products",
       {
