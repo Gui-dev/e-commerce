@@ -14,6 +14,7 @@ interface ProductGridProps {
   limit?: number;
   categoryId?: string;
   search?: string;
+  products?: Product[];
 }
 
 function ProductCardSkeleton() {
@@ -33,7 +34,13 @@ function ProductCardSkeleton() {
   );
 }
 
-export function ProductGrid({ page = 1, limit = 12, categoryId, search }: ProductGridProps) {
+export function ProductGrid({
+  page = 1,
+  limit = 12,
+  categoryId,
+  search,
+  products: productsProp,
+}: ProductGridProps) {
   const { data, isLoading, error } = useQuery<{ products: Product[] }>({
     queryKey: ["products", { page, limit, categoryId, search }],
     queryFn: async () => {
@@ -45,7 +52,32 @@ export function ProductGrid({ page = 1, limit = 12, categoryId, search }: Produc
       const response = await api.get<{ products: Product[] }>(`/products?${params.toString()}`);
       return response;
     },
+    enabled: !productsProp,
   });
+
+  if (productsProp) {
+    if (productsProp.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+          <PackageSearch className="size-12 text-muted-foreground" />
+          <div>
+            <h3 className="text-lg font-medium">Nenhum produto encontrado</h3>
+            <p className="text-sm text-muted-foreground">
+              Não encontramos produtos disponíveis no momento.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {productsProp.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
