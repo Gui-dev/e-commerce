@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import type { Product } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { PackageSearch } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 interface CatalogFilters {
@@ -18,18 +18,13 @@ interface CatalogFilters {
 }
 
 export default function ProductsPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [filters, setFilters] = useState<CatalogFilters>({
     search: searchParams.get("search") ?? undefined,
     categoryId: searchParams.get("category") ?? undefined,
-    priceMin: searchParams.get("priceMin")
-      ? Number(searchParams.get("priceMin"))
-      : undefined,
-    priceMax: searchParams.get("priceMax")
-      ? Number(searchParams.get("priceMax"))
-      : undefined,
+    priceMin: searchParams.get("priceMin") ? Number(searchParams.get("priceMin")) : undefined,
+    priceMax: searchParams.get("priceMax") ? Number(searchParams.get("priceMax")) : undefined,
   });
 
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
@@ -73,19 +68,14 @@ export default function ProductsPage() {
       <h1 className="mb-8 text-2xl font-bold">Produtos</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row">
-        <CatalogSidebar
-          onFilterChange={handleFilterChange}
-          initialFilters={filters}
-        />
+        <CatalogSidebar onFilterChange={handleFilterChange} initialFilters={filters} />
 
         <div className="flex-1">
           {isLoading ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-64 animate-pulse rounded-lg bg-muted"
-                />
+                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders never reorder
+                <div key={i} className="h-64 animate-pulse rounded-lg bg-muted" />
               ))}
             </div>
           ) : data && data.products.length > 0 ? (
@@ -100,19 +90,13 @@ export default function ProductsPage() {
                 ))}
               </div>
               <div className="mt-8">
-                <Pagination
-                  page={page}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
+                <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <PackageSearch className="mb-4 size-12 text-muted-foreground" />
-              <h2 className="text-lg font-semibold">
-                Nenhum produto encontrado
-              </h2>
+              <h2 className="text-lg font-semibold">Nenhum produto encontrado</h2>
               <p className="text-sm text-muted-foreground">
                 Tente ajustar os filtros ou buscar por outro termo.
               </p>

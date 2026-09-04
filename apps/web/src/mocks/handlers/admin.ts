@@ -90,12 +90,9 @@ export const adminHandlers = [
     return HttpResponse.json(order);
   }),
 
-  http.patch("*/admin/orders/:id/status", async ({ request }) => {
+  http.patch("*/admin/orders/:id/status", async ({ params, request }) => {
     const body = (await request.json()) as { status: string };
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split("/");
-    const orderId = pathParts[pathParts.length - 2];
-    const order = mockOrders.find((o) => o.id === orderId);
+    const order = mockOrders.find((o) => o.id === params.id);
     if (!order) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({ ...order, status: body.status });
   }),
@@ -104,12 +101,9 @@ export const adminHandlers = [
     return HttpResponse.json(mockUsers);
   }),
 
-  http.patch("*/admin/users/:id/role", async ({ request }) => {
+  http.patch("*/admin/users/:id/role", async ({ params, request }) => {
     const body = (await request.json()) as { role: string };
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split("/");
-    const userId = pathParts[pathParts.length - 2];
-    const user = mockUsers.find((u) => u.id === userId);
+    const user = mockUsers.find((u) => u.id === params.id);
     if (!user) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({ ...user, role: body.role });
   }),
@@ -118,12 +112,9 @@ export const adminHandlers = [
     return HttpResponse.json(mockStock);
   }),
 
-  http.post("*/admin/stock/:variantId/adjust", async ({ request }) => {
+  http.post("*/admin/stock/:variantId/adjust", async ({ params, request }) => {
     const body = (await request.json()) as { quantity: number; reason: string };
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split("/");
-    const variantId = pathParts[pathParts.length - 2];
-    const stock = mockStock.find((s) => s.variantId === variantId);
+    const stock = mockStock.find((s) => s.variantId === params.variantId);
     if (!stock) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({ ...stock, quantity: stock.quantity + body.quantity });
   }),

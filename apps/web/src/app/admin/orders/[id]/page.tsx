@@ -19,13 +19,13 @@ import { useAuthStore } from "@/stores/auth-store";
 import type { Order, OrderStatus } from "@/types";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-function OrderDetailContent() {
+export default function AdminOrderDetailPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get("id");
+  const params = useParams();
+  const orderId = params.id as string;
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const [order, setOrder] = useState<Order | null>(null);
@@ -157,19 +157,5 @@ function OrderDetailContent() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-export default function AdminOrderDetailPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      }
-    >
-      <OrderDetailContent />
-    </Suspense>
   );
 }

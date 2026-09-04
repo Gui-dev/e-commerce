@@ -2,16 +2,7 @@
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  BarChart3,
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Tags,
-  Ticket,
-  Users,
-  Warehouse,
-} from "lucide-react";
+import { BarChart3, Package, ShoppingCart, Tags, Ticket, Users, Warehouse } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

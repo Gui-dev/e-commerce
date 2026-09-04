@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Header } from "./header";
 
@@ -24,7 +25,15 @@ vi.mock("next-themes", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...props }: any) => (
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -44,7 +53,10 @@ describe("Header", () => {
 
   it("should render Categorias link", () => {
     render(<Header />);
-    expect(screen.getByRole("link", { name: /categorias/i })).toHaveAttribute("href", "/categories");
+    expect(screen.getByRole("link", { name: /categorias/i })).toHaveAttribute(
+      "href",
+      "/categories",
+    );
   });
 
   it("should render Meus Pedidos link", () => {
