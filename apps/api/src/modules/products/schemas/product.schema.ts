@@ -21,6 +21,8 @@ export const updateProductSchema = z.object({
 export const listProductsQuerySchema = z.object({
   categoryId: z.string().uuid().optional(),
   search: z.string().optional(),
+  priceMin: z.coerce.number().int().positive().optional(),
+  priceMax: z.coerce.number().int().positive().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(50).default(12),
 });
