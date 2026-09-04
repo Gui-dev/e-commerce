@@ -1,6 +1,7 @@
 "use client";
 
 import { buttonVariants } from "@/components/ui/button";
+import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
   const itemCount = useCartStore((s) => s.itemCount());
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -20,6 +22,12 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-4">
+          <Link href="/products" className={buttonVariants({ variant: "ghost" })}>
+            Produtos
+          </Link>
+          <Link href="/categories" className={buttonVariants({ variant: "ghost" })}>
+            Categorias
+          </Link>
           <Link href="/orders" className={buttonVariants({ variant: "ghost" })}>
             Meus Pedidos
           </Link>
@@ -35,7 +43,13 @@ export function Header() {
               </span>
             )}
           </Link>
-          <ThemeToggle />
+          {isAuthenticated ? (
+            <ThemeToggle />
+          ) : (
+            <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+              Entrar
+            </Link>
+          )}
         </nav>
       </div>
     </header>
