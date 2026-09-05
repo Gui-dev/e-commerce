@@ -3,14 +3,22 @@
 import { buttonVariants } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import { ShoppingCart } from "lucide-react";
+import { LogOut, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
+  const router = useRouter();
   const itemCount = useCartStore((s) => s.itemCount());
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  function handleLogout() {
+    logout();
+    router.push("/");
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -50,7 +58,17 @@ export function Header() {
             )}
           </Link>
           {isAuthenticated ? (
-            <ThemeToggle />
+            <>
+              <ThemeToggle />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={buttonVariants({ variant: "ghost" })}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </button>
+            </>
           ) : (
             <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
               Entrar

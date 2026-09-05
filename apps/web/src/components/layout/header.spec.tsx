@@ -42,6 +42,12 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 describe("Header", () => {
   it("should render logo", () => {
     render(<Header />);

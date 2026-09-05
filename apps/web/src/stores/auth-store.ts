@@ -10,7 +10,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 interface AuthResponse {
@@ -46,7 +46,12 @@ export const useAuthStore = create<AuthState>()(
         set({ user: data.user, token: data.token, isAuthenticated: true });
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await api.post("/auth/sign-out");
+        } catch {
+          // ignora erro, limpa local mesmo assim
+        }
         persistToken(null);
         set({ user: null, token: null, isAuthenticated: false });
       },
