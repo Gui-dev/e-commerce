@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { API_URL } from "@/lib/constants";
 import { api } from "@/lib/api";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
@@ -15,7 +16,8 @@ interface ImageUploadProps {
 
 export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [preview, setPreview] = useState<string | null>(value || null);
+  const getFullUrl = (url: string | null) => (url ? `${API_URL}${url}` : null);
+  const [preview, setPreview] = useState<string | null>(getFullUrl(value));
 
   const handleUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +35,8 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
           formData as unknown as Record<string, unknown>,
         );
 
-        setPreview(response.url);
+        const fullUrl = `${API_URL}${response.url}`;
+        setPreview(fullUrl);
         onChange(response.url);
       } catch (err) {
         console.error("Upload failed:", err);
