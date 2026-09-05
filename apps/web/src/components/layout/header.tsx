@@ -60,14 +60,14 @@ export function Header() {
                 <User className="h-5 w-5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem>
                   <Link href="/orders" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Meus Pedidos
                   </Link>
                 </DropdownMenuItem>
                 {user?.role === "admin" && (
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem>
                     <Link href="/admin" className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
                       Admin

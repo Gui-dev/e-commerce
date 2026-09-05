@@ -25,12 +25,18 @@ function getAuthToken(): string | null {
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", headers: customHeaders, body, ...rest } = options;
 
+  const token = getAuthToken();
+
+  const isFormData = body instanceof FormData;
+
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...customHeaders,
   };
 
-  const token = getAuthToken();
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -38,7 +44,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   const response = await fetch(`${API_URL}${endpoint}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
     ...rest,
   });
 
