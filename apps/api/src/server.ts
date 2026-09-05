@@ -1,7 +1,10 @@
 import { buildApp } from "./app.js";
 import { env } from "./env.js";
+import { ensureBucketExists } from "./lib/storage/index.js";
 
 async function main() {
+  await ensureBucketExists();
+
   const app = await buildApp();
 
   try {

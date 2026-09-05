@@ -1,4 +1,5 @@
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import {
   type ZodTypeProvider,
@@ -24,9 +25,11 @@ import { createCheckoutRoutes } from "./modules/orders/routes/index.js";
 import { DrizzlePaymentRepository } from "./modules/payments/infra/drizzle-payment-repository.js";
 import { createPaymentRoutes } from "./modules/payments/routes/index.js";
 import { DrizzleProductRepository } from "./modules/products/infra/drizzle-product-repository.js";
+import { imageRoutes } from "./modules/products/routes/images.js";
 import { createProductRoutes } from "./modules/products/routes/index.js";
 import { DrizzleStockRepository } from "./modules/stock/infra/drizzle-stock-repository.js";
 import { createAdminStockRoutes } from "./modules/stock/routes/admin.js";
+import { storageRoutes } from "./modules/storage/routes.js";
 import { DrizzleUserRepository } from "./modules/users/infra/drizzle-user-repository.js";
 import { createAdminUserRoutes } from "./modules/users/routes/admin.js";
 import { createWebhookRoutes } from "./modules/webhooks/routes/index.js";
@@ -42,6 +45,12 @@ export async function buildApp() {
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(errorHandler);
+
+  await app.register(multipart, {
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+  });
 
   await app.register(cors, {
     origin: env.CORS_ORIGIN ?? (env.NODE_ENV === "development" ? "http://localhost:3000" : false),
@@ -111,6 +120,10 @@ export async function buildApp() {
   await app.register(createAdminUserRoutes(userRepository));
 
   await app.register(createWebhookRoutes(paymentRepository, orderRepository));
+
+  await app.register(imageRoutes);
+
+  await app.register(storageRoutes);
 
   app.get("/health", async () => ({ status: "ok" }));
 

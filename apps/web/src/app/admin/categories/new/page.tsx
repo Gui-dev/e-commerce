@@ -2,6 +2,7 @@
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
@@ -87,12 +88,11 @@ export default function AdminNewCategoryPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
-              <Input
-                id="imageUrl"
-                type="url"
+              <Label>Imagem da Categoria (opcional)</Label>
+              <ImageUpload
                 value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                onChange={(url) => setForm({ ...form, imageUrl: url || "" })}
+                prefix="categories"
               />
             </div>
             <Button type="submit" disabled={submitting}>

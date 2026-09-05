@@ -2,6 +2,8 @@
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,7 +16,6 @@ import {
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Category, Product } from "@/types";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -169,12 +170,11 @@ export default function AdminProductEditPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL da Imagem</Label>
-              <Input
-                id="imageUrl"
-                type="url"
+              <Label>Imagem do Produto</Label>
+              <ImageUpload
                 value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                onChange={(url) => setForm({ ...form, imageUrl: url || "" })}
+                prefix="products"
               />
             </div>
             <div className="flex items-center gap-2">

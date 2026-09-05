@@ -2,6 +2,7 @@
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -153,12 +154,11 @@ export default function AdminNewProductPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
-              <Input
-                id="imageUrl"
-                type="url"
+              <Label>Imagem do Produto (opcional)</Label>
+              <ImageUpload
                 value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                onChange={(url) => setForm({ ...form, imageUrl: url || "" })}
+                prefix="products"
               />
             </div>
             <Button type="submit" disabled={submitting}>
