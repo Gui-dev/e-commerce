@@ -1,15 +1,23 @@
 "use client";
 
 import { buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import { LogOut, ShoppingCart } from "lucide-react";
+import { LogOut, Moon, Shield, ShoppingCart, Sun, User } from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
   const router = useRouter();
+  const { setTheme, resolvedTheme } = useTheme();
   const itemCount = useCartStore((s) => s.itemCount());
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
@@ -34,17 +42,6 @@ export function Header() {
           <Link href="/products" className={buttonVariants({ variant: "ghost" })}>
             Produtos
           </Link>
-          <Link href="/categories" className={buttonVariants({ variant: "ghost" })}>
-            Categorias
-          </Link>
-          <Link href="/orders" className={buttonVariants({ variant: "ghost" })}>
-            Meus Pedidos
-          </Link>
-          {user?.role === "admin" && (
-            <Link href="/admin" className={buttonVariants({ variant: "ghost" })}>
-              Admin
-            </Link>
-          )}
           <Link
             href="/cart"
             className={buttonVariants({ variant: "ghost", size: "icon" })}
@@ -58,17 +55,52 @@ export function Header() {
             )}
           </Link>
           {isAuthenticated ? (
-            <>
-              <ThemeToggle />
-              <button
-                type="button"
-                onClick={handleLogout}
-                className={buttonVariants({ variant: "ghost" })}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+                aria-label="Menu do usuario"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </button>
-            </>
+                <User className="h-5 w-5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/orders" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Meus Pedidos
+                  </Link>
+                </DropdownMenuItem>
+                {user?.role === "admin" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Admin
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  className="flex items-center gap-2"
+                >
+                  {resolvedTheme === "dark" ? (
+                    <>
+                      <Sun className="h-4 w-4" />
+                      Modo Claro
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4" />
+                      Modo Escuro
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
               Entrar

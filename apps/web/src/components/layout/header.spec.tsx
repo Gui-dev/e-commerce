@@ -48,6 +48,20 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+vi.mock("@/components/ui/dropdown-menu", () => ({
+  DropdownMenu: ({ children }: { children: ReactNode }) => <div data-testid="dropdown-menu">{children}</div>,
+  DropdownMenuTrigger: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({ children }: { children: ReactNode }) => <div data-testid="dropdown-content">{children}</div>,
+  DropdownMenuItem: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => (
+    <div {...props}>{children}</div>
+  ),
+  DropdownMenuSeparator: () => <div data-testid="dropdown-separator" />,
+}));
+
 describe("Header", () => {
   it("should render logo", () => {
     render(<Header />);
@@ -57,19 +71,6 @@ describe("Header", () => {
   it("should render Produtos link", () => {
     render(<Header />);
     expect(screen.getByRole("link", { name: /produtos/i })).toHaveAttribute("href", "/products");
-  });
-
-  it("should render Categorias link", () => {
-    render(<Header />);
-    expect(screen.getByRole("link", { name: /categorias/i })).toHaveAttribute(
-      "href",
-      "/categories",
-    );
-  });
-
-  it("should render Meus Pedidos link", () => {
-    render(<Header />);
-    expect(screen.getByRole("link", { name: /meus pedidos/i })).toHaveAttribute("href", "/orders");
   });
 
   it("should render cart link", () => {
@@ -82,19 +83,7 @@ describe("Header", () => {
     expect(screen.getByRole("link", { name: /entrar/i })).toHaveAttribute("href", "/login");
   });
 
-  it("should show admin link for admin users", () => {
-    mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        isAuthenticated: true,
-        user: { id: "1", name: "Admin", email: "admin@test.com", role: "admin" },
-      };
-      return selector ? selector(state) : state;
-    });
-    render(<Header />);
-    expect(screen.getByRole("link", { name: /admin/i })).toHaveAttribute("href", "/admin");
-  });
-
-  it("should not show admin link for non-admin users", () => {
+  it("should show user menu when authenticated", () => {
     mockUseAuthStore.mockImplementation((selector) => {
       const state = {
         isAuthenticated: true,
@@ -103,6 +92,31 @@ describe("Header", () => {
       return selector ? selector(state) : state;
     });
     render(<Header />);
-    expect(screen.queryByRole("link", { name: /admin/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("dropdown-menu")).toBeInTheDocument();
+    expect(screen.getByLabelText(/menu do usuario/i)).toBeInTheDocument();
+  });
+
+  it("should show admin link in dropdown for admin users", () => {
+    mockUseAuthStore.mockImplementation((selector) => {
+      const state = {
+        isAuthenticated: true,
+        user: { id: "1", name: "Admin", email: "admin@test.com", role: "admin" },
+      };
+      return selector ? selector(state) : state;
+    });
+    render(<Header />);
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+  });
+
+  it("should not show admin link in dropdown for non-admin users", () => {
+    mockUseAuthStore.mockImplementation((selector) => {
+      const state = {
+        isAuthenticated: true,
+        user: { id: "1", name: "User", email: "user@test.com", role: "customer" },
+      };
+      return selector ? selector(state) : state;
+    });
+    render(<Header />);
+    expect(screen.queryByText("Admin")).not.toBeInTheDocument();
   });
 });
