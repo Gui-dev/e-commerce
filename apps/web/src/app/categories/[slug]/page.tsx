@@ -94,7 +94,7 @@ export default function CategoryPage() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <PackageSearch className="mb-4 size-12 text-muted-foreground" />
           <h2 className="text-lg font-semibold">Nenhum produto nesta categoria</h2>
-          <Link href="/products" className="mt-4 text-sm text-primary hover:underline">
+          <Link href="/" className="mt-4 text-sm text-primary hover:underline">
             Ver todos os produtos →
           </Link>
         </div>

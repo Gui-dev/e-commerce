@@ -49,13 +49,23 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: { children: ReactNode }) => <div data-testid="dropdown-menu">{children}</div>,
-  DropdownMenuTrigger: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => (
+  DropdownMenu: ({ children }: { children: ReactNode }) => (
+    <div data-testid="dropdown-menu">{children}</div>
+  ),
+  DropdownMenuTrigger: ({
+    children,
+    ...props
+  }: {
+    children: ReactNode;
+    [key: string]: unknown;
+  }) => (
     <button type="button" {...props}>
       {children}
     </button>
   ),
-  DropdownMenuContent: ({ children }: { children: ReactNode }) => <div data-testid="dropdown-content">{children}</div>,
+  DropdownMenuContent: ({ children }: { children: ReactNode }) => (
+    <div data-testid="dropdown-content">{children}</div>
+  ),
   DropdownMenuItem: ({ children, ...props }: { children: ReactNode; [key: string]: unknown }) => (
     <div {...props}>{children}</div>
   ),
@@ -66,11 +76,6 @@ describe("Header", () => {
   it("should render logo", () => {
     render(<Header />);
     expect(screen.getByText("KronoStore")).toBeInTheDocument();
-  });
-
-  it("should render Produtos link", () => {
-    render(<Header />);
-    expect(screen.getByRole("link", { name: /produtos/i })).toHaveAttribute("href", "/products");
   });
 
   it("should render cart link", () => {

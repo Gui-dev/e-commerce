@@ -39,9 +39,6 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-4">
-          <Link href="/products" className={buttonVariants({ variant: "ghost" })}>
-            Produtos
-          </Link>
           <Link
             href="/cart"
             className={buttonVariants({ variant: "ghost", size: "icon" })}
