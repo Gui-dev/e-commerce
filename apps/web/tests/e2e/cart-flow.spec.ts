@@ -2,7 +2,7 @@ import { type Page, expect, test } from "@playwright/test";
 
 async function addFirstProductToCart(page: Page) {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Produtos" })).toBeVisible();
 
   const productLink = page.getByRole("link", { name: /Comprar/ }).first();
   await productLink.click();

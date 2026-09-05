@@ -9,9 +9,13 @@ test.describe("Catalog Browse", () => {
     await expect(page.getByText("Wireless Headphones")).toBeVisible();
   });
 
-  test("should navigate to /categories from header", async ({ page }) => {
-    await page.getByRole("link", { name: "Categorias" }).click();
-    await expect(page).toHaveURL("/categories");
+  test("should navigate to category detail from category nav", async ({ page }) => {
+    await page.getByRole("link", { name: "Eletrônicos" }).click();
+    await expect(page).toHaveURL("/categories/eletronicos");
+  });
+
+  test("should navigate to categories page", async ({ page }) => {
+    await page.goto("/categories");
     await expect(page.getByRole("heading", { name: "Categorias" })).toBeVisible();
   });
 
@@ -24,12 +28,6 @@ test.describe("Catalog Browse", () => {
     await page.goto("/categories");
     await page.getByText("Eletrônicos").click();
     await expect(page).toHaveURL("/categories/eletronicos");
-  });
-
-  test("should filter products by category on homepage", async ({ page }) => {
-    await expect(page.getByText("Eletrônicos")).toBeVisible();
-    await page.getByText("Eletrônicos").click();
-    await expect(page).toHaveURL(/categoryId=/);
   });
 
   test("should search products on homepage", async ({ page }) => {

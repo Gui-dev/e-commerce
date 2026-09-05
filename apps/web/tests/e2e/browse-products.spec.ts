@@ -5,21 +5,15 @@ test.describe("Browse Products", () => {
     await page.goto("/");
   });
 
-  test("displays the homepage with hero section", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "KronoStore" })).toBeVisible();
-    await expect(page.getByText("Hardware e periféricos de alta performance")).toBeVisible();
+  test("displays the catalog homepage with title", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: "Produtos" })).toBeVisible();
   });
 
-  test("displays featured products section", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeVisible();
+  test("displays product cards", async ({ page }) => {
+    await expect(page.getByText("Wireless Headphones")).toBeVisible();
   });
 
-  test("Ver Catálogo scrolls to the products section", async ({ page }) => {
-    const catalogLink = page.getByRole("link", { name: "Ver Catálogo" });
-    await expect(catalogLink).toBeVisible();
-    await catalogLink.click();
-
-    await expect(page).toHaveURL(/.*#produtos/);
-    await expect(page.getByRole("heading", { name: "Produtos em Destaque" })).toBeInViewport();
+  test("displays category sidebar", async ({ page }) => {
+    await expect(page.getByText("Categorias")).toBeVisible();
   });
 });
