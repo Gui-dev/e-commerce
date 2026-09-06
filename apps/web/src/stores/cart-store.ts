@@ -104,11 +104,20 @@ export const useCartStore = create<CartState>()(
         }
 
         const subtotal = get().totalCents();
-        const validation = await api.post<{
+        let validation: {
           valid: boolean;
           discountCents?: number;
           error?: string;
-        }>("/coupons/validate", { code, orderCents: subtotal });
+        };
+        try {
+          validation = await api.post<{
+            valid: boolean;
+            discountCents?: number;
+            error?: string;
+          }>("/coupons/validate", { code, orderCents: subtotal });
+        } catch {
+          return { ok: false, message: "Erro ao validar cupom" };
+        }
 
         if (!validation.valid) {
           return { ok: false, message: validation.error ?? "Cupom inválido" };
