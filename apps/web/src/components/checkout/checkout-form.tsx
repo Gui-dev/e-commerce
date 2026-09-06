@@ -25,7 +25,6 @@ interface Address {
 
 export function CheckoutForm() {
   const router = useRouter();
-  const _user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const items = useCartStore((s) => s.items);
   const totalCents = useCartStore((s) => s.totalCents());
@@ -62,12 +61,7 @@ export function CheckoutForm() {
 
       const order = await api.post<Order>("/checkout", {
         address: { ...address, country: "BR" },
-      });
-
-      await api.post("/payments", {
-        orderId: order.id,
-        method: paymentMethod,
-        amountCents: totalCents,
+        paymentMethod,
       });
 
       clearCart();

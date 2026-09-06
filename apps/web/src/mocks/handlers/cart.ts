@@ -22,23 +22,14 @@ export const cartHandlers = [
   }),
 
   http.post(`${API_URL}/checkout`, async ({ request }) => {
-    const body = (await request.json()) as { address: unknown };
+    const body = (await request.json()) as { address: unknown; paymentMethod: string };
 
     return HttpResponse.json({
       id: "order-1",
       status: "pending",
       address: body.address,
+      paymentMethod: body.paymentMethod,
       totalCents: 0,
-    });
-  }),
-
-  http.post(`${API_URL}/payments`, async () => {
-    return HttpResponse.json({
-      id: "payment-1",
-      orderId: "order-1",
-      method: "pix",
-      status: "pending",
-      amountCents: 0,
     });
   }),
 

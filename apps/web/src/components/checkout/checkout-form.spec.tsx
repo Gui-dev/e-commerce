@@ -2,7 +2,7 @@ import { server } from "@/mocks/server";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { mockVariant } from "@/test/fixtures/cart";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -65,12 +65,12 @@ describe("<CheckoutForm />", () => {
     const checkoutSpy = vi.fn();
     server.use(
       http.post(`${API_URL}/checkout`, async ({ request }) => {
-        const body = (await request.json()) as { address: Record<string, string> };
+        const body = (await request.json()) as {
+          address: Record<string, string>;
+          paymentMethod: string;
+        };
         checkoutSpy(body);
         return HttpResponse.json({ id: "order-1", status: "pending" });
-      }),
-      http.post(`${API_URL}/payments`, () => {
-        return HttpResponse.json({ id: "payment-1", status: "pending" });
       }),
     );
 
@@ -93,7 +93,36 @@ describe("<CheckoutForm />", () => {
         zip: "01234-567",
         country: "BR",
       },
+      paymentMethod: "pix",
     });
+  });
+
+  it("should not call /payments after checkout", async () => {
+    const user = userEvent.setup();
+    addItemToCart();
+
+    const paymentsSpy = vi.fn();
+    server.use(
+      http.post(`${API_URL}/payments`, () => {
+        paymentsSpy();
+        return HttpResponse.json({ id: "payment-1", status: "pending" });
+      }),
+    );
+
+    render(<CheckoutForm />);
+
+    await user.type(screen.getByLabelText(/nome do destinatário/i), "Maria");
+    await user.type(screen.getByLabelText(/rua/i), "Rua 1");
+    await user.type(screen.getByLabelText(/cidade/i), "SP");
+    await user.type(screen.getByLabelText(/estado/i), "SP");
+    await user.type(screen.getByLabelText(/cep/i), "00000-000");
+
+    await user.click(screen.getByRole("button", { name: /finalizar compra/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/processando/i)).not.toBeInTheDocument();
+    });
+    expect(paymentsSpy).not.toHaveBeenCalled();
   });
 
   it("should show error message when checkout fails", async () => {
