@@ -3,11 +3,13 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Header } from "./header";
 
+const mockUseCartStore = vi.fn((selector) => {
+  const state = { itemCount: () => 2 };
+  return selector ? selector(state) : state;
+});
+
 vi.mock("@/stores/cart-store", () => ({
-  useCartStore: vi.fn((selector) => {
-    const state = { itemCount: () => 2 };
-    return selector ? selector(state) : state;
-  }),
+  useCartStore: (...args: [unknown]) => mockUseCartStore(...args),
 }));
 
 const mockUseAuthStore = vi.fn((selector) => {
@@ -19,7 +21,7 @@ vi.mock("@/stores/auth-store", () => ({
   useAuthStore: (...args: [unknown]) => mockUseAuthStore(...args),
 }));
 
-vi.mock("next-themes", () => ({
+vi.mock("@/hooks/use-theme", () => ({
   useTheme: vi.fn(() => ({
     setTheme: vi.fn(),
     resolvedTheme: "light",
@@ -123,5 +125,28 @@ describe("Header", () => {
     });
     render(<Header />);
     expect(screen.queryByText("Admin")).not.toBeInTheDocument();
+  });
+
+  it("should show cart badge with item count after mount", () => {
+    mockUseCartStore.mockImplementation((selector) => {
+      const state = { itemCount: () => 2 };
+      return selector ? selector(state) : state;
+    });
+    render(<Header />);
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
+
+  it("should not show cart badge when the cart is empty", () => {
+    mockUseCartStore.mockImplementation((selector) => {
+      const state = { itemCount: () => 0 };
+      return selector ? selector(state) : state;
+    });
+    render(<Header />);
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+  });
+
+  it("should position the cart link so the badge anchors to it", () => {
+    render(<Header />);
+    expect(screen.getByRole("link", { name: /carrinho/i })).toHaveClass("relative");
   });
 });

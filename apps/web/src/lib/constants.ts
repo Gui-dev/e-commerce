@@ -3,6 +3,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001
 export const STORAGE_KEYS = {
   AUTH_TOKEN: "kronostore-auth-token",
   CART: "kronostore-cart",
+  THEME: "kronostore-theme",
 } as const;
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

@@ -19,6 +19,7 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(getImageSrc(value));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync do preview com a prop value
     setPreview(getImageSrc(value));
   }, [value]);
 

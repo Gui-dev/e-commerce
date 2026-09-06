@@ -8,10 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMounted } from "@/hooks/use-mounted";
+import { useTheme } from "@/hooks/use-theme";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { LogOut, Moon, Shield, ShoppingCart, Sun, User } from "lucide-react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -22,6 +24,7 @@ export function Header() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const mounted = useMounted();
 
   function handleLogout() {
     logout();
@@ -41,17 +44,17 @@ export function Header() {
         <nav className="flex items-center gap-4">
           <Link
             href="/cart"
-            className={buttonVariants({ variant: "ghost", size: "icon" })}
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}
             aria-label="Carrinho"
           >
             <ShoppingCart className="h-5 w-5" />
-            {itemCount > 0 && (
+            {mounted && itemCount > 0 && (
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                 {itemCount}
               </span>
             )}
           </Link>
-          {isAuthenticated ? (
+          {mounted && isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
