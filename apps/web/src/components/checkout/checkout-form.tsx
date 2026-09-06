@@ -30,6 +30,7 @@ export function CheckoutForm() {
   const items = useCartStore((s) => s.items);
   const totalCents = useCartStore((s) => s.totalCents());
   const clearCart = useCartStore((s) => s.clearCart);
+  const coupon = useCartStore((s) => s.coupon);
   const syncWithServer = useCartStore((s) => s.syncWithServer);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
@@ -195,10 +196,20 @@ export function CheckoutForm() {
               <span className="text-muted-foreground">Frete</span>
               <span className="text-green-600 dark:text-green-400">Grátis</span>
             </div>
+            {coupon && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Desconto ({coupon.code})</span>
+                <span className="text-green-600 dark:text-green-400">
+                  -{formatBRL(coupon.discountCents)}
+                </span>
+              </div>
+            )}
             <Separator />
             <div className="flex items-center justify-between font-semibold">
               <span>Total</span>
-              <span className="text-lg">{formatBRL(totalCents)}</span>
+              <span className="text-lg">
+                {formatBRL(Math.max(0, totalCents - (coupon?.discountCents ?? 0)))}
+              </span>
             </div>
 
             {error && (

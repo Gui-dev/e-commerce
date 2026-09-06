@@ -121,4 +121,15 @@ describe("<CheckoutForm />", () => {
 
     expect(await screen.findByText(/api error: 400/i)).toBeInTheDocument();
   });
+
+  it("should show the coupon discount in the order summary", () => {
+    useCartStore.setState({
+      items: [{ variantId: mockVariant.id, quantity: 1, variant: mockVariant }],
+      coupon: { code: "DESC10", discountCents: 999 },
+    });
+    render(<CheckoutForm />);
+
+    expect(screen.getByText(/desconto \(desc10\)/i)).toBeInTheDocument();
+    expect(screen.getByText("R$ 89,91")).toBeInTheDocument();
+  });
 });
