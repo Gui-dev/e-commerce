@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, getImageSrc } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import type { ProductVariant } from "@/types";
 import { useQuery } from "@tanstack/react-query";
@@ -128,9 +128,9 @@ export function ProductDetailClient({ slug }: ProductDetailClientProps) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="grid gap-8 md:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
-          {product.imageUrl ? (
+          {getImageSrc(product.imageUrl) ? (
             <Image
-              src={product.imageUrl}
+              src={getImageSrc(product.imageUrl)!}
               alt={product.name}
               fill
               className="object-cover"

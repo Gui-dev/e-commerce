@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, getImageSrc } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -34,9 +34,9 @@ export function CartItem({ variantId, quantity, variant }: CartItemProps) {
     <div className="flex flex-col gap-4">
       <div className="flex gap-4">
         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-          {variant.product.imageUrl ? (
+          {getImageSrc(variant.product.imageUrl) ? (
             <Image
-              src={variant.product.imageUrl}
+              src={getImageSrc(variant.product.imageUrl)!}
               alt={variant.product.name}
               fill
               className="object-cover"

@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { API_URL } from "@/lib/constants";
 import { api } from "@/lib/api";
+import { getImageSrc } from "@/lib/utils";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
@@ -16,11 +16,10 @@ interface ImageUploadProps {
 
 export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const getFullUrl = (url: string | null) => (url ? `${API_URL}${url}` : null);
-  const [preview, setPreview] = useState<string | null>(getFullUrl(value));
+  const [preview, setPreview] = useState<string | null>(getImageSrc(value));
 
   useEffect(() => {
-    setPreview(getFullUrl(value));
+    setPreview(getImageSrc(value));
   }, [value]);
 
   const handleUpload = useCallback(
@@ -39,8 +38,7 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
           formData as unknown as Record<string, unknown>,
         );
 
-        const fullUrl = `${API_URL}${response.url}`;
-        setPreview(fullUrl);
+        setPreview(getImageSrc(response.url));
         onChange(response.url);
       } catch (err) {
         console.error("Upload failed:", err);

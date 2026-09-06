@@ -1,12 +1,14 @@
 import { z } from "zod";
 
+const imageUrlSchema = z.union([z.string().url(), z.string().startsWith("/storage/")]);
+
 export const createProductSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().min(10),
   categoryId: z.string().uuid(),
   priceCents: z.number().int().positive(),
   skuPrefix: z.string().min(2).max(10),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: imageUrlSchema.nullable().optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -14,7 +16,7 @@ export const updateProductSchema = z.object({
   description: z.string().min(10).optional(),
   categoryId: z.string().uuid().optional(),
   priceCents: z.number().int().positive().optional(),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: imageUrlSchema.nullable().optional(),
   isActive: z.boolean().optional(),
 });
 

@@ -4,22 +4,15 @@ import { BUCKET_NAME, s3Client } from "../../lib/storage/minio.js";
 
 export async function storageRoutes(app: FastifyInstance) {
   app.get(
-    "/storage/:key",
+    "/storage/*",
     {
       schema: {
         tags: ["Storage"],
         summary: "Buscar imagem do storage",
-        params: {
-          type: "object",
-          properties: {
-            key: { type: "string" },
-          },
-          required: ["key"],
-        },
       },
     },
     async (request, reply) => {
-      const { key } = request.params as { key: string };
+      const key = (request.params as { "*": string })["*"];
 
       try {
         const command = new GetObjectCommand({

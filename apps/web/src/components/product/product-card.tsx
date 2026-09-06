@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, getImageSrc } from "@/lib/utils";
 import type { Product } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,9 +15,9 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link href={`/product/${product.slug}`} className="group block">
       <Card className="h-full transition-shadow hover:shadow-md">
         <div className="relative aspect-square overflow-hidden rounded-t-xl bg-muted">
-          {product.imageUrl ? (
+          {getImageSrc(product.imageUrl) ? (
             <Image
-              src={product.imageUrl}
+              src={getImageSrc(product.imageUrl)!}
               alt={product.name}
               fill
               className="object-cover transition-transform group-hover:scale-105"
