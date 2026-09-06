@@ -44,6 +44,13 @@ export class InMemoryCartRepository implements CartRepository {
     return cart;
   }
 
+  async setCoupon(cartId: string, couponId: string | null): Promise<void> {
+    const cart = this.carts.get(cartId);
+    if (!cart) throw new CartNotFoundError(cartId);
+
+    this.carts.set(cartId, { ...cart, couponId });
+  }
+
   async addItem(cartId: string, input: AddToCartInput): Promise<CartItem> {
     if (!this.carts.has(cartId)) throw new CartNotFoundError(cartId);
 

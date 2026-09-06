@@ -6,6 +6,7 @@ export interface CartRepository {
   findByUserId(userId: string): Promise<Cart | null>;
   findItemById(itemId: string): Promise<CartItem | null>;
   create(userId: string): Promise<Cart>;
+  setCoupon(cartId: string, couponId: string | null): Promise<void>;
   addItem(cartId: string, input: AddToCartInput): Promise<CartItem>;
   updateItem(itemId: string, input: UpdateCartItemInput): Promise<CartItem>;
   removeItem(itemId: string): Promise<void>;

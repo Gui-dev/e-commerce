@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { users } from "../../../lib/db/schema.js";
 import { db } from "../../../lib/db/test-db.js";
 import { TEST_VARIANT_ID, resetDatabase, seedTestData } from "../../../lib/db/test-helpers.js";
+import { DrizzleCouponRepository } from "../../coupons/infra/drizzle-coupon-repository.js";
 import { CartItemNotFoundError, CartNotFoundError } from "../domain/cart.js";
 import { DrizzleCartRepository } from "./drizzle-cart-repository.js";
 
@@ -168,6 +169,31 @@ describe("DrizzleCartRepository", () => {
       const cart = await repo.create(TEST_USER_ID);
       const found = await repo.findCartItemByVariantId(cart.id, TEST_VARIANT_ID);
       expect(found).toBeNull();
+    });
+  });
+
+  describe("setCoupon", () => {
+    it("should set and clear the coupon on a cart", async () => {
+      const cart = await repo.create(TEST_USER_ID);
+      const coupon = await new DrizzleCouponRepository(db).create({
+        code: "TEST10",
+        type: "percentage",
+        value: 10,
+      });
+
+      await repo.setCoupon(cart.id, coupon.id);
+      let found = await repo.findByUserId(TEST_USER_ID);
+      expect(found?.couponId).toBe(coupon.id);
+
+      await repo.setCoupon(cart.id, null);
+      found = await repo.findByUserId(TEST_USER_ID);
+      expect(found?.couponId).toBeNull();
+    });
+
+    it("should throw CartNotFoundError when cart does not exist", async () => {
+      await expect(repo.setCoupon("00000000-0000-0000-0000-000000000000", null)).rejects.toThrow(
+        CartNotFoundError,
+      );
     });
   });
 });

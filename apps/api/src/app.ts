@@ -87,7 +87,9 @@ export async function buildApp() {
   const cartRepository = new DrizzleCartRepository();
   const stockRepository = new DrizzleStockRepository();
   const couponRepository = new DrizzleCouponRepository();
-  await app.register(createCartRoutes(cartRepository, stockRepository));
+  await app.register(
+    createCartRoutes(cartRepository, stockRepository, couponRepository, productRepository),
+  );
 
   const orderRepository = new DrizzleOrderRepository();
   const paymentRepository = new DrizzlePaymentRepository();

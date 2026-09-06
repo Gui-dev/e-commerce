@@ -73,6 +73,15 @@ export class DrizzleCartRepository implements CartRepository {
     return mapCartRow(row, []);
   }
 
+  async setCoupon(cartId: string, couponId: string | null): Promise<void> {
+    const cartRow = await this.db.query.carts.findFirst({
+      where: (c, { eq }) => eq(c.id, cartId),
+    });
+    if (!cartRow) throw new CartNotFoundError(cartId);
+
+    await this.db.update(carts).set({ couponId }).where(eq(carts.id, cartId));
+  }
+
   async addItem(cartId: string, input: AddToCartInput): Promise<CartItem> {
     const cartRow = await this.db.query.carts.findFirst({
       where: (c, { eq }) => eq(c.id, cartId),
