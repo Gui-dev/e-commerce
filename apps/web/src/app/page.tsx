@@ -1,67 +1,67 @@
-"use client";
+'use client'
 
-import { CatalogSidebar } from "@/components/product/catalog-sidebar";
-import { Pagination } from "@/components/product/pagination";
-import { ProductCard } from "@/components/product/product-card";
-import { api } from "@/lib/api";
-import type { Product } from "@/types";
-import { useQuery } from "@tanstack/react-query";
-import { PackageSearch } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { CatalogSidebar } from '@/components/product/catalog-sidebar'
+import { Pagination } from '@/components/product/pagination'
+import { ProductCard } from '@/components/product/product-card'
+import { api } from '@/lib/api'
+import type { Product } from '@/types'
+import { useQuery } from '@tanstack/react-query'
+import { PackageSearch } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { useCallback, useState } from 'react'
 
 interface CatalogFilters {
-  search?: string;
-  categoryId?: string;
-  priceMin?: number;
-  priceMax?: number;
+  search?: string
+  categoryId?: string
+  priceMin?: number
+  priceMax?: number
 }
 
 export default function Home() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()
 
   const [filters, setFilters] = useState<CatalogFilters>({
-    search: searchParams.get("search") ?? undefined,
-    categoryId: searchParams.get("category") ?? undefined,
-    priceMin: searchParams.get("priceMin") ? Number(searchParams.get("priceMin")) : undefined,
-    priceMax: searchParams.get("priceMax") ? Number(searchParams.get("priceMax")) : undefined,
-  });
+    search: searchParams.get('search') ?? undefined,
+    categoryId: searchParams.get('category') ?? undefined,
+    priceMin: searchParams.get('priceMin') ? Number(searchParams.get('priceMin')) : undefined,
+    priceMax: searchParams.get('priceMax') ? Number(searchParams.get('priceMax')) : undefined,
+  })
 
-  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
-  const limit = 12;
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1)
+  const limit = 12
 
   const { data, isLoading } = useQuery<{
-    products: Product[];
-    total: number;
+    products: Product[]
+    total: number
   }>({
-    queryKey: ["products", { ...filters, page, limit }],
+    queryKey: ['products', { ...filters, page, limit }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      params.set("page", String(page));
-      params.set("limit", String(limit));
-      if (filters.categoryId) params.set("categoryId", filters.categoryId);
-      if (filters.search) params.set("search", filters.search);
-      if (filters.priceMin) params.set("priceMin", String(filters.priceMin));
-      if (filters.priceMax) params.set("priceMax", String(filters.priceMax));
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(limit))
+      if (filters.categoryId) params.set('categoryId', filters.categoryId)
+      if (filters.search) params.set('search', filters.search)
+      if (filters.priceMin) params.set('priceMin', String(filters.priceMin))
+      if (filters.priceMax) params.set('priceMax', String(filters.priceMax))
       const response = await api.get<{
-        products: Product[];
-        total: number;
-      }>(`/products?${params.toString()}`);
-      return response;
+        products: Product[]
+        total: number
+      }>(`/products?${params.toString()}`)
+      return response
     },
-  });
+  })
 
-  const totalPages = data ? Math.ceil(data.total / limit) : 0;
+  const totalPages = data ? Math.ceil(data.total / limit) : 0
 
   const handleFilterChange = useCallback((newFilters: CatalogFilters) => {
-    setFilters(newFilters);
-    setPage(1);
-  }, []);
+    setFilters(newFilters)
+    setPage(1)
+  }, [])
 
   const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+    setPage(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -81,8 +81,8 @@ export default function Home() {
           ) : data && data.products.length > 0 ? (
             <>
               <p className="mb-4 text-sm text-muted-foreground">
-                {data.total} produto{data.total !== 1 ? "s" : ""} encontrado
-                {data.total !== 1 ? "s" : ""}
+                {data.total} produto{data.total !== 1 ? 's' : ''} encontrado
+                {data.total !== 1 ? 's' : ''}
               </p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {data.products.map((product) => (
@@ -105,5 +105,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  );
+  )
 }
