@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import type { Category } from "@/types";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -60,6 +60,7 @@ export default function AdminCategoriesPage() {
                   <th className="py-3 px-4 text-left font-medium">Nome</th>
                   <th className="py-3 px-4 text-left font-medium">Slug</th>
                   <th className="py-3 px-4 text-left font-medium">Descricao</th>
+                  <th className="py-3 px-4 text-left font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -68,6 +69,15 @@ export default function AdminCategoriesPage() {
                     <td className="py-3 px-4 font-medium">{cat.name}</td>
                     <td className="py-3 px-4 font-mono text-xs">{cat.slug}</td>
                     <td className="py-3 px-4 text-muted-foreground">{cat.description || "-"}</td>
+                    <td className="py-3 px-4">
+                      <Link
+                        href={`/admin/categories/${cat.id}`}
+                        className={buttonVariants({ variant: "ghost", size: "icon" })}
+                        aria-label={`Editar ${cat.name}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -1,0 +1,145 @@
+"use client";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
+import type { Category } from "@/types";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+export default function AdminEditCategoryPage() {
+  const router = useRouter();
+  const params = useParams();
+  const categoryId = params.id as string;
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ name: "", slug: "", description: "", imageUrl: "" });
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "admin") {
+      router.push("/login");
+      return;
+    }
+
+    if (!categoryId) {
+      router.push("/admin/categories");
+      return;
+    }
+
+    api
+      .get<Category>(`/admin/categories/${categoryId}`)
+      .then((cat) => {
+        setCategory(cat);
+        setForm({
+          name: cat.name,
+          slug: cat.slug,
+          description: cat.description || "",
+          imageUrl: cat.imageUrl || "",
+        });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [isAuthenticated, user, router, categoryId]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!categoryId) return;
+    setSubmitting(true);
+    try {
+      await api.patch(`/admin/categories/${categoryId}`, {
+        name: form.name,
+        slug: form.slug,
+        description: form.description || undefined,
+        imageUrl: form.imageUrl || undefined,
+      });
+      router.push("/admin/categories");
+    } catch (err) {
+      console.error("Failed to update category", err);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!category) {
+    return <div className="text-center py-20 text-muted-foreground">Categoria nao encontrada.</div>;
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <div className="flex items-center gap-4">
+        <Link
+          href="/admin/categories"
+          className={buttonVariants({ variant: "ghost", size: "icon" })}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <h1 className="text-3xl font-bold">Editar Categoria</h1>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{category.name}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={form.slug}
+                onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descricao (opcional)</Label>
+              <Input
+                id="description"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Imagem da Categoria (opcional)</Label>
+              <ImageUpload
+                value={form.imageUrl}
+                onChange={(url) => setForm({ ...form, imageUrl: url || "" })}
+                prefix="categories"
+              />
+            </div>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Salvar Alteracoes
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
