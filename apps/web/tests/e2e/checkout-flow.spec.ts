@@ -104,13 +104,14 @@ test.describe("Checkout Webhook Flow", () => {
 
     await apiPost("/cart/items", { variantId, quantity: 1 }, authToken);
 
-    const order = await apiPost<OrderResponse>("/checkout", { address: VALID_ADDRESS }, authToken);
-
-    const payment = await apiPost<{ id: string }>(
-      "/payments",
-      { orderId: order.id, method: "pix", amountCents: order.totalCents },
+    const order = await apiPost<OrderResponse>(
+      "/checkout",
+      { address: VALID_ADDRESS, paymentMethod: "pix" },
       authToken,
     );
+
+    const paymentId = order.payment?.id;
+    expect(paymentId).toBeTruthy();
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(TEST_EMAIL);
@@ -125,7 +126,7 @@ test.describe("Checkout Webhook Flow", () => {
     const webhookBody = {
       provider: "e2e-test",
       event: "payment.approved",
-      paymentId: payment.id,
+      paymentId,
       externalId: "e2e-test-123",
       status: "approved" as const,
     };
