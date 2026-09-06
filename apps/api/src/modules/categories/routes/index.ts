@@ -30,6 +30,42 @@ export function createCategoryRoutes(categoryRepository: CategoryRepository) {
     );
 
     // Admin routes
+    app.withTypeProvider<ZodTypeProvider>().get(
+      "/admin/categories",
+      {
+        preHandler: [requireAdmin],
+        schema: {
+          tags: ["Admin - Categories"],
+          summary: "Listar categorias (admin)",
+          security: [{ cookieAuth: [] }],
+        },
+      },
+      async () => {
+        return listCategories.execute();
+      },
+    );
+
+    app.withTypeProvider<ZodTypeProvider>().get(
+      "/admin/categories/:id",
+      {
+        preHandler: [requireAdmin],
+        schema: {
+          tags: ["Admin - Categories"],
+          summary: "Obter categoria por ID (admin)",
+          security: [{ cookieAuth: [] }],
+          params: categoryParamsSchema,
+        },
+      },
+      async (request, reply) => {
+        const { id } = request.params;
+        const category = await categoryRepository.findById(id);
+        if (!category) {
+          return reply.code(404).send({ error: "NOT_FOUND", message: "Category not found" });
+        }
+        return reply.send(category);
+      },
+    );
+
     app.withTypeProvider<ZodTypeProvider>().post(
       "/admin/categories",
       {
