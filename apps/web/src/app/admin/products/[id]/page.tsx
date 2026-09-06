@@ -145,6 +145,7 @@ export default function AdminProductEditPage() {
               <Select
                 value={form.categoryId}
                 onValueChange={(v) => setForm({ ...form, categoryId: v ?? "" })}
+                items={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -5,7 +5,7 @@ import { API_URL } from "@/lib/constants";
 import { api } from "@/lib/api";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ImageUploadProps {
   value?: string | null;
@@ -18,6 +18,10 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const getFullUrl = (url: string | null) => (url ? `${API_URL}${url}` : null);
   const [preview, setPreview] = useState<string | null>(getFullUrl(value));
+
+  useEffect(() => {
+    setPreview(getFullUrl(value));
+  }, [value]);
 
   const handleUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
