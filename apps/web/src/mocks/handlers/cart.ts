@@ -41,4 +41,17 @@ export const cartHandlers = [
       amountCents: 0,
     });
   }),
+
+  http.post(`${API_URL}/coupons/validate`, async ({ request }) => {
+    const body = (await request.json()) as { code: string; orderCents: number };
+    return HttpResponse.json({ valid: true, discountCents: Math.floor(body.orderCents / 10) });
+  }),
+
+  http.post(`${API_URL}/cart/coupon`, () => {
+    return HttpResponse.json({}, { status: 204 });
+  }),
+
+  http.delete(`${API_URL}/cart/coupon`, () => {
+    return HttpResponse.json({}, { status: 204 });
+  }),
 ];

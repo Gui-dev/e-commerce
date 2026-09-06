@@ -2,6 +2,7 @@
 
 import { CartItem } from "@/components/cart/cart-item";
 import { CartSummary } from "@/components/cart/cart-summary";
+import { CouponInput } from "@/components/cart/coupon-input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
 import { ShoppingCart } from "lucide-react";
@@ -50,6 +51,7 @@ export default function CartPage() {
         </div>
 
         <div className="lg:sticky lg:top-24 lg:self-start">
+          <CouponInput />
           <CartSummary />
         </div>
       </div>

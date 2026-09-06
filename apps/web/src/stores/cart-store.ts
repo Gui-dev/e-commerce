@@ -1,4 +1,6 @@
+import { api } from "@/lib/api";
 import { syncCartWithServer } from "@/lib/cart-sync";
+import { useAuthStore } from "@/stores/auth-store";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -22,12 +24,25 @@ interface CartItem {
   serverItemId?: string;
 }
 
+interface CartCoupon {
+  code: string;
+  discountCents: number;
+}
+
+interface CouponApplyResult {
+  ok: boolean;
+  message?: string;
+}
+
 interface CartState {
   items: CartItem[];
+  coupon: CartCoupon | null;
   addItem: (variant: CartItemVariant) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
+  applyCoupon: (code: string) => Promise<CouponApplyResult>;
+  removeCoupon: () => Promise<void>;
   setServerItemId: (variantId: string, serverItemId: string) => void;
   syncWithServer: (token: string) => Promise<void>;
   totalCents: () => number;
@@ -80,6 +95,47 @@ export const useCartStore = create<CartState>()(
         set({ items: [] });
       },
 
+      coupon: null,
+
+      applyCoupon: async (code) => {
+        const token = useAuthStore.getState().token;
+        if (!token) {
+          return { ok: false, message: "Faça login para aplicar cupom" };
+        }
+
+        const subtotal = get().totalCents();
+        const validation = await api.post<{
+          valid: boolean;
+          discountCents?: number;
+          error?: string;
+        }>("/coupons/validate", { code, orderCents: subtotal });
+
+        if (!validation.valid) {
+          return { ok: false, message: validation.error ?? "Cupom inválido" };
+        }
+
+        try {
+          await api.post("/cart/coupon", { code });
+        } catch {
+          return { ok: false, message: "Não foi possível aplicar o cupom" };
+        }
+
+        set({ coupon: { code, discountCents: validation.discountCents ?? 0 } });
+        return { ok: true, message: "Cupom aplicado!" };
+      },
+
+      removeCoupon: async () => {
+        const token = useAuthStore.getState().token;
+        if (token) {
+          try {
+            await api.delete("/cart/coupon");
+          } catch {
+            // ignore
+          }
+        }
+        set({ coupon: null });
+      },
+
       setServerItemId: (variantId, serverItemId) => {
         set((state) => ({
           items: state.items.map((i) => (i.variantId === variantId ? { ...i, serverItemId } : i)),
@@ -115,6 +171,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "kronostore-cart",
+      partialize: (state) => ({ items: state.items }),
     },
   ),
 );

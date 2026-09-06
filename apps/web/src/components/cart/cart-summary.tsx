@@ -11,6 +11,7 @@ import Link from "next/link";
 export function CartSummary() {
   const items = useCartStore((s) => s.items);
   const totalCents = useCartStore((s) => s.totalCents());
+  const coupon = useCartStore((s) => s.coupon);
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
 
@@ -25,10 +26,20 @@ export function CartSummary() {
           <span className="text-muted-foreground">Frete</span>
           <span className="text-green-600 dark:text-green-400">Grátis</span>
         </div>
+        {coupon && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Desconto ({coupon.code})</span>
+            <span className="text-green-600 dark:text-green-400">
+              -{formatBRL(coupon.discountCents)}
+            </span>
+          </div>
+        )}
         <Separator />
         <div className="flex items-center justify-between font-semibold">
           <span>Total</span>
-          <span className="text-lg">{formatBRL(totalCents)}</span>
+          <span className="text-lg">
+            {formatBRL(Math.max(0, totalCents - (coupon?.discountCents ?? 0)))}
+          </span>
         </div>
       </CardContent>
       <CardFooter>
