@@ -9,6 +9,7 @@ export const checkoutSchema = z.object({
     zip: z.string(),
     country: z.string().length(2).default("BR"),
   }),
+  paymentMethod: z.enum(["pix", "credit_card", "boleto"]),
 });
 
 export const createPaymentSchema = z.object({

@@ -5,6 +5,7 @@ import { TEST_VARIANT_ID, resetDatabase, seedTestData } from "../../../lib/db/te
 import { withTransaction } from "../../../lib/db/transaction.js";
 import { DrizzleCartRepository } from "../../cart/infra/drizzle-cart-repository.js";
 import { DrizzleCouponRepository } from "../../coupons/infra/drizzle-coupon-repository.js";
+import { DrizzlePaymentRepository } from "../../payments/infra/drizzle-payment-repository.js";
 import { DrizzleProductRepository } from "../../products/infra/drizzle-product-repository.js";
 import { DrizzleStockRepository } from "../../stock/infra/drizzle-stock-repository.js";
 import { DrizzleOrderRepository } from "../infra/drizzle-order-repository.js";
@@ -41,6 +42,7 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
   let verifyOrderRepo: DrizzleOrderRepository;
   let verifyCartRepo: DrizzleCartRepository;
   let verifyStockRepo: DrizzleStockRepository;
+  let verifyPaymentRepo: DrizzlePaymentRepository;
 
   beforeEach(async () => {
     await resetDatabase();
@@ -62,6 +64,7 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
       new DrizzleStockRepository(),
       new DrizzleCouponRepository(),
       new DrizzleProductRepository(),
+      new DrizzlePaymentRepository(),
       testTransaction,
     );
 
@@ -69,6 +72,7 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
     verifyOrderRepo = new DrizzleOrderRepository(db);
     verifyCartRepo = new DrizzleCartRepository(db);
     verifyStockRepo = new DrizzleStockRepository(db);
+    verifyPaymentRepo = new DrizzlePaymentRepository(db);
 
     mockAdd.mockClear();
   });
@@ -77,10 +81,11 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
     const cart = await setupCartRepo.create(TEST_USER_ID);
     await setupCartRepo.addItem(cart.id, { variantId: TEST_VARIANT_ID, quantity: 2 });
 
-    const order = await useCase.execute({
+    const { order, payment } = await useCase.execute({
       userId: TEST_USER_ID,
       userEmail: "checkout-e2e@example.com",
       address,
+      paymentMethod: "pix",
     });
 
     expect(order.status).toBe("pending");
@@ -90,6 +95,11 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
 
     const stock = await verifyStockRepo.findByVariantId(TEST_VARIANT_ID);
     expect(stock?.quantity).toBe(98);
+
+    expect(payment).toBeDefined();
+    expect(payment.orderId).toBe(order.id);
+    expect(payment.method).toBe("pix");
+    expect(payment.amountCents).toBe(3998);
 
     expect(mockAdd).toHaveBeenCalledTimes(1);
   });
@@ -103,6 +113,7 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
         userId: TEST_USER_ID,
         userEmail: "checkout-e2e@example.com",
         address,
+        paymentMethod: "pix",
       }),
     ).rejects.toThrow("Insufficient stock");
 
@@ -111,6 +122,9 @@ describe("CheckoutUseCase (Drizzle integration)", () => {
 
     const stock = await verifyStockRepo.findByVariantId(TEST_VARIANT_ID);
     expect(stock?.quantity).toBe(100);
+
+    const payments = await verifyPaymentRepo.findByOrderId("00000000-0000-0000-0000-000000000000");
+    expect(payments).toBeNull();
 
     expect(mockAdd).not.toHaveBeenCalled();
   });

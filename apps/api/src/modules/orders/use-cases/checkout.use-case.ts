@@ -3,6 +3,8 @@ import { emailQueue } from "../../../queues/email.queue.js";
 import type { CartRepository } from "../../cart/domain/cart-repository.js";
 import { EmptyCartError } from "../../cart/domain/cart.js";
 import type { CouponRepository } from "../../coupons/domain/coupon-repository.js";
+import type { Payment, PaymentRepository } from "../../payments/domain/payment-repository.js";
+import type { PaymentMethod } from "../../payments/domain/payment.js";
 import type { ProductRepository } from "../../products/domain/product-repository.js";
 import type { StockRepository } from "../../stock/domain/stock-repository.js";
 import { InsufficientStockError } from "../../stock/domain/stock.js";
@@ -13,7 +15,13 @@ export interface CheckoutInput {
   userId: string;
   userEmail: string;
   address: ShippingAddress;
+  paymentMethod: PaymentMethod;
   idempotencyKey?: string;
+}
+
+export interface CheckoutResult {
+  order: Order;
+  payment: Payment;
 }
 
 export class CheckoutUseCase {
@@ -23,18 +31,25 @@ export class CheckoutUseCase {
     private readonly stockRepository: StockRepository,
     private readonly couponRepository: CouponRepository,
     private readonly productRepository: ProductRepository,
+    private readonly paymentRepository: PaymentRepository,
     private readonly transactional: (
-      fn: (tx: unknown) => Promise<Order>,
-    ) => Promise<Order> = withTransaction,
+      fn: (tx: unknown) => Promise<CheckoutResult>,
+    ) => Promise<CheckoutResult> = withTransaction,
   ) {}
 
-  async execute(input: CheckoutInput): Promise<Order> {
+  async execute(input: CheckoutInput): Promise<CheckoutResult> {
     if (input.idempotencyKey) {
       const existing = await this.orderRepository.findByIdempotencyKey(input.idempotencyKey);
-      if (existing) return existing;
+      if (existing) {
+        const payment = await this.paymentRepository.findByOrderId(existing.id);
+        if (!payment) {
+          throw new Error(`Payment not found for order ${existing.id}`);
+        }
+        return { order: existing, payment };
+      }
     }
 
-    const order = await this.transactional(async () => {
+    const result = await this.transactional(async () => {
       const cart = await this.cartRepository.findByUserId(input.userId);
       if (!cart || cart.items.length === 0) {
         throw new EmptyCartError();
@@ -104,15 +119,25 @@ export class CheckoutUseCase {
 
       await this.cartRepository.clearCart(cart.id);
 
-      return created;
+      const subtotalCents = orderItems.reduce(
+        (acc, item) => acc + item.unitPriceCents * item.quantity,
+        0,
+      );
+      const payment = await this.paymentRepository.create({
+        orderId: created.id,
+        method: input.paymentMethod,
+        amountCents: subtotalCents - discountCents,
+      });
+
+      return { order: created, payment };
     });
 
     await emailQueue.add("order-confirmation", {
       to: input.userEmail,
-      subject: `Order ${order.id} confirmed`,
-      html: `<h1>Thank you for your order!</h1><p>Order ID: ${order.id}</p>`,
+      subject: `Order ${result.order.id} confirmed`,
+      html: `<h1>Thank you for your order!</h1><p>Order ID: ${result.order.id}</p>`,
     });
 
-    return order;
+    return result;
   }
 }

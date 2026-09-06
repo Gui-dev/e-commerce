@@ -30,6 +30,7 @@ export function createCheckoutRoutes(
       stockRepository,
       couponRepository,
       productRepository,
+      paymentRepository,
     );
 
     app.withTypeProvider<ZodTypeProvider>().post(
@@ -47,14 +48,15 @@ export function createCheckoutRoutes(
       async (request, reply) => {
         const idempotencyKey = request.headers["idempotency-key"];
 
-        const order = await checkout.execute({
+        const result = await checkout.execute({
           userId: request.user.id,
           userEmail: request.user.email,
           address: request.body.address,
+          paymentMethod: request.body.paymentMethod,
           idempotencyKey,
         });
 
-        return reply.code(201).send(order);
+        return reply.code(201).send({ ...result.order, payment: result.payment });
       },
     );
 
