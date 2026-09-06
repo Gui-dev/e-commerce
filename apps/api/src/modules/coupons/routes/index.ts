@@ -2,11 +2,16 @@ import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import type { FastifyInstance } from "fastify";
 import { requireAdmin } from "../../../middleware/auth.js";
 import type { CouponRepository } from "../domain/coupon-repository.js";
-import { couponParamsSchema, createCouponSchema } from "../schemas/coupon.schema.js";
+import {
+  couponParamsSchema,
+  createCouponSchema,
+  validateCouponSchema,
+} from "../schemas/coupon.schema.js";
 import { CreateCouponUseCase } from "../use-cases/create-coupon.use-case.js";
 import { DeleteCouponUseCase } from "../use-cases/delete-coupon.use-case.js";
 import { GetCouponUseCase } from "../use-cases/get-coupon.use-case.js";
 import { ListCouponsUseCase } from "../use-cases/list-coupons.use-case.js";
+import { ValidateCouponUseCase } from "../use-cases/validate-coupon.use-case.js";
 
 export function createCouponRoutes(couponRepository: CouponRepository) {
   return async function couponRoutes(app: FastifyInstance) {
@@ -14,6 +19,23 @@ export function createCouponRoutes(couponRepository: CouponRepository) {
     const createCoupon = new CreateCouponUseCase(couponRepository);
     const getCoupon = new GetCouponUseCase(couponRepository);
     const deleteCoupon = new DeleteCouponUseCase(couponRepository);
+    const validateCoupon = new ValidateCouponUseCase(couponRepository);
+
+    app.withTypeProvider<ZodTypeProvider>().post(
+      "/coupons/validate",
+      {
+        schema: {
+          tags: ["Coupons"],
+          summary: "Validar cupom",
+          body: validateCouponSchema,
+        },
+      },
+      async (request, reply) => {
+        const { code, orderCents } = request.body;
+        const result = await validateCoupon.execute(code, orderCents);
+        return reply.send(result);
+      },
+    );
 
     app.withTypeProvider<ZodTypeProvider>().get(
       "/admin/coupons",
