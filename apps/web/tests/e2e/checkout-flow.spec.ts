@@ -110,7 +110,7 @@ test.describe("Checkout Webhook Flow", () => {
 
     const order = await apiPost<OrderResponse>(
       "/checkout",
-      { address: VALID_ADDRESS, paymentMethod: "pix" },
+      { address: VALID_ADDRESS, paymentMethod: "boleto" },
       authToken,
     );
     const orderId = order.id;
