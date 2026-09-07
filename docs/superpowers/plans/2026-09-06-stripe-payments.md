@@ -1342,6 +1342,11 @@ describe("usePaymentStatus", () => {
     await vi.advanceTimersByTimeAsync(2500);
     await vi.advanceTimersByTimeAsync(0);
     expect(onPaid).toHaveBeenCalled();
+
+    // polling must STOP once the order is paid (no further network calls)
+    const callsAfterPaid = getSpy.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(getSpy.mock.calls.length).toBe(callsAfterPaid);
   });
 
   it("keeps polling order errors without crashing", async () => {
@@ -1372,11 +1377,13 @@ import type { Order, OrderStatus } from "@/types";
 import { useEffect, useRef, useState } from "react";
 
 export function usePaymentStatus(orderId: string, onPaid?: () => void) {
+  const TERMINAL_STATUSES: OrderStatus[] = ["paid", "shipped", "delivered", "cancelled"];
   const [status, setStatus] = useState<OrderStatus>("pending");
   const onPaidRef = useRef(onPaid);
   onPaidRef.current = onPaid;
 
   useEffect(() => {
+    if (TERMINAL_STATUSES.includes(status)) return;
     let cancelled = false;
     const timer = setInterval(async () => {
       const order = await api.get<Order>(`/orders/${orderId}`).catch(() => null);
