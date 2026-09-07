@@ -65,5 +65,6 @@ describe("GeneratePaymentIntentUseCase", () => {
         billingName: "Maria",
       }),
     ).rejects.toMatchObject({ code: "ORDER_NOT_FOUND", statusCode: 404 });
+    expect(gateway.createPaymentIntent).not.toHaveBeenCalled();
   });
 });
