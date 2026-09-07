@@ -1387,6 +1387,7 @@ export function usePaymentStatus(orderId: string, onPaid?: () => void) {
   onPaidRef.current = onPaid;
 
   useEffect(() => {
+    if (!orderId) return;
     if (TERMINAL_STATUSES.includes(status)) return;
     let cancelled = false;
     const timer = setInterval(async () => {
@@ -2032,16 +2033,16 @@ import { PixPanel } from "./pix-panel";
 No topo do componente (após os `useState`):
 
 ```tsx
-  const paymentStatus = usePaymentStatus(orderId ?? "", () => {
+  usePaymentStatus(orderId ?? "", () => {
     if (orderId) router.push(`/checkout/success?orderId=${orderId}`);
   });
 ```
 
-E, no render do PIX, use `paymentStatus === "paid" ? null : <PixPanel ... onPaymentSuccess={noop} />`. Para PIX/boleto o redirect já é tratado pelo hook `onPaid` (sem dupla navegação); remova `onPaymentSuccess` de `PixPanel`/`BoletoPanel` no JSX (mantenha o prop obrigatório só se o componente os requer — nesse caso passe `() => {}`).
+E, no render do PIX/Boleto, passe `onPaymentSuccess={() => {}}`. Para PIX/boleto o redirect já é tratado pelo hook `onPaid` (sem dupla navegação). O valor de retorno do hook NÃO é armazenado em variável (chamada vazia) — o hook existe só pelo side-effect do redirect; regras de hooks permitem chamada sem atribuição.
 
 > A regra `react-hooks` do ESLint vai quebrar com o IIFE; implemente a versão acima (hook no topo) — isso é obrigatório.
 
-6. Desabilite a troca de método após o pedido criado (`PaymentPicker` recebe `onChange={() => {}}` quando `step === "payment"`) e ajuste o botão submit para não aparecer no passo payment (ou ficar desabilitado).
+6. Desabilite a troca de método após o pedido criado (`PaymentPicker` recebe `onChange={() => {}}` quando `step === "payment"`) e **não exiba o botão submit nem o bloco de erro no passo payment** (evita re-submit que criaria pedido duplicado): envolva ambos em `{step === "form" && (...)}`.
 
 - [ ] **Step 4: Fix o hook placement e rode os testes**
 
