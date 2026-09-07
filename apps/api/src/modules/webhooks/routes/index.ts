@@ -3,7 +3,8 @@ import type { FastifyInstance } from "fastify";
 import type { OrderRepository } from "../../orders/domain/order-repository.js";
 import { webhookPaymentSchema } from "../../orders/schemas/order.schema.js";
 import type { PaymentRepository } from "../../payments/domain/payment-repository.js";
-import { captureRawBody, verifyWebhookSignature } from "../middleware/verify-webhook-signature.js";
+import { captureRawBody } from "../middleware/capture-raw-body.js";
+import { verifyStripeSignature } from "../middleware/verify-stripe-signature.js";
 
 export function createWebhookRoutes(
   paymentRepository: PaymentRepository,
@@ -19,7 +20,7 @@ export function createWebhookRoutes(
           body: webhookPaymentSchema,
         },
         preParsing: captureRawBody,
-        preHandler: verifyWebhookSignature,
+        preHandler: verifyStripeSignature,
       },
       async (request, reply) => {
         const { paymentId, status, externalId } = request.body;
