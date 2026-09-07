@@ -6,18 +6,6 @@ import type {
 } from "../domain/payment-gateway.js";
 import type { PaymentMethod } from "../domain/payment.js";
 
-type StripePixNextAction = {
-  pix?: {
-    qr_code?: {
-      data?: string;
-      image_url_png?: string;
-      image_url_svg?: string;
-    };
-    hosted_instructions_url?: string;
-    expires_at?: number;
-  };
-};
-
 export class StripePaymentGateway implements PaymentGateway {
   constructor(private readonly client: Pick<Stripe, "paymentIntents">) {}
 
@@ -63,16 +51,16 @@ export class StripePaymentGateway implements PaymentGateway {
         } as never,
         confirm: true,
       });
-      const pix = (paymentIntent.next_action as unknown as StripePixNextAction).pix;
-      if (!pix?.qr_code?.data) {
+      const pix = paymentIntent.next_action?.pix_display_qr_code;
+      if (!pix?.data) {
         throw new Error("Stripe did not return pix next_action data");
       }
       return {
         type: "pix",
         paymentIntentId: paymentIntent.id,
-        qrCodeUrl: pix.qr_code.data,
-        qrCodePngUrl: pix.qr_code?.image_url_png ?? "",
-        qrCodeSvgUrl: pix.qr_code?.image_url_svg ?? "",
+        qrCodeUrl: pix.data,
+        qrCodePngUrl: pix.image_url_png ?? "",
+        qrCodeSvgUrl: pix.image_url_svg ?? "",
         hostedInstructionsUrl: pix.hosted_instructions_url ?? "",
         expiresAt: pix.expires_at ? new Date(pix.expires_at * 1000).toISOString() : null,
       };

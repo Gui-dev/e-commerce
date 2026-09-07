@@ -45,14 +45,12 @@ describe("StripePaymentGateway", () => {
     const paymentIntents = makeFakeIntents({
       id: "pi_pix_1",
       next_action: {
-        pix: {
+        pix_display_qr_code: {
+          data: "000201pixpayload",
+          image_url_png: "https://stripe.test/qr.png",
+          image_url_svg: "https://stripe.test/qr.svg",
           hosted_instructions_url: "https://stripe.test/pix/instructions",
           expires_at: 1780000000,
-          qr_code: {
-            data: "000201pixpayload",
-            image_url_png: "https://stripe.test/qr.png",
-            image_url_svg: "https://stripe.test/qr.svg",
-          },
         },
       },
     });
