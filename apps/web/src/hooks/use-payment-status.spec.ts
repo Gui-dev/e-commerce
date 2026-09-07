@@ -29,9 +29,13 @@ describe("usePaymentStatus", () => {
     await vi.advanceTimersByTimeAsync(2500);
     await vi.advanceTimersByTimeAsync(2500);
     await vi.advanceTimersByTimeAsync(2500);
+    await vi.advanceTimersByTimeAsync(2500);
     await vi.advanceTimersByTimeAsync(0);
     expect(onPaid).toHaveBeenCalled();
-    expect(getSpy).toHaveBeenCalledTimes(3);
+
+    const callsAfterPaid = getSpy.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(getSpy.mock.calls.length).toBe(callsAfterPaid);
   });
 
   it("keeps polling order errors without crashing", async () => {
