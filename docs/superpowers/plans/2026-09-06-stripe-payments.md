@@ -1253,7 +1253,11 @@ let stripePromise: ReturnType<typeof loadStripe> | null = null;
 
 export function getStripe() {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "");
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!key) {
+      throw new Error("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set");
+    }
+    stripePromise = loadStripe(key);
   }
   return stripePromise;
 }
@@ -1438,6 +1442,10 @@ import { CreditCardForm } from "./credit-card-form";
 const mockConfirm = vi.fn();
 const mockGetElement = vi.fn(() => ({ _card: true }));
 
+vi.mock("@/lib/stripe", () => ({
+  getStripe: () => Promise.resolve({}),
+}));
+
 vi.mock("@stripe/react-stripe-js", () => ({
   Elements: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   CardElement: () => <div data-testid="card-element" />,
@@ -1533,10 +1541,9 @@ function CardFormInner({ clientSecret, onPaymentSuccess, onCancel }: CreditCardF
       return;
     }
 
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card: cardElement },
-    });
-
+  const result = await stripe.confirmCardPayment(clientSecret, {
+    payment_method: { card: cardElement },
+  });
     setLoading(false);
 
     if (result.error) {
