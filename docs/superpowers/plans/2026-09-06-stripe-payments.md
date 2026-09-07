@@ -1612,10 +1612,17 @@ import { describe, expect, it, vi } from "vitest";
 import { PixPanel } from "./pix-panel";
 
 const copyMock = vi.fn().mockResolvedValue(undefined);
-Object.assign(navigator, { clipboard: { writeText: copyMock } });
+
+function installClipboardMock() {
+  Object.defineProperty(navigator, "clipboard", {
+    value: { writeText: copyMock },
+    configurable: true,
+  });
+}
 
 describe("<PixPanel />", () => {
   it("renders the QR code and copy button", () => {
+    installClipboardMock();
     render(
       <PixPanel
         qrCodePngUrl="https://stripe.test/qr.png"
@@ -1635,13 +1642,17 @@ describe("<PixPanel />", () => {
 
   it("copies the pix code when clicking copy", async () => {
     const user = userEvent.setup();
+    installClipboardMock();
     render(<PixPanel qrCodePngUrl="" hostedInstructionsUrl="" copyCode="000201pix" onPaymentSuccess={() => {}} />);
 
     await user.click(screen.getByRole("button", { name: /copiar/i }));
     expect(copyMock).toHaveBeenCalledWith("000201pix");
+    expect(screen.getByRole("button", { name: /copiado/i })).toBeInTheDocument();
   });
 });
 ```
+
+> Nota: `userEvent.setup()` instala um stub getter-only de `navigator.clipboard` que sobrescreve o mock de nível de módulo; por isso o mock é instalado com `Object.defineProperty` (configurable) DENTRO de cada teste, após `userEvent.setup()`.
 
 > Nota: `PixPanel` recebe os dados do QR como props (vindos do `checkout-form`); o polling de status é compartilhado pelo `usePaymentStatus`.
 
@@ -1674,10 +1685,13 @@ export function PixPanel({ qrCodePngUrl, hostedInstructionsUrl, copyCode, onPaym
 
   async function handleCopy() {
     setCopying(true);
-    await navigator.clipboard.writeText(copyCode);
-    setCopied(true);
-    setCopying(false);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(copyCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } finally {
+      setCopying(false);
+    }
   }
 
   return (
