@@ -144,4 +144,84 @@ describe("StripePaymentGateway", () => {
       }),
     ).rejects.toThrow("client_secret");
   });
+
+  it("throws when Stripe does not return the boleto hosted voucher url", async () => {
+    const paymentIntents = makeFakeIntents({
+      id: "pi_boleto_2",
+      next_action: {
+        boleto_display_details: {
+          pdf: "https://stripe.test/boleto/voucher.pdf",
+        },
+      },
+    });
+    const gateway = new StripePaymentGateway({ paymentIntents } as never);
+
+    await expect(
+      gateway.createPaymentIntent({
+        method: "boleto",
+        amountCents: 3998,
+        orderId: "order-1",
+        paymentId: "pay-1",
+        billingDetails: BILLING,
+      }),
+    ).rejects.toThrow("Stripe did not return boleto next_action data");
+  });
+
+  it("maps pix next_action with expires_at null to expiresAt null", async () => {
+    const paymentIntents = makeFakeIntents({
+      id: "pi_pix_2",
+      next_action: {
+        pix_display_qr_code: {
+          data: "000201pixpayload",
+          expires_at: null,
+        },
+      },
+    });
+    const gateway = new StripePaymentGateway({ paymentIntents } as never);
+
+    const result = (await gateway.createPaymentIntent({
+      method: "pix",
+      amountCents: 3998,
+      orderId: "order-1",
+      paymentId: "pay-1",
+      billingDetails: BILLING,
+    })) as Extract<PaymentIntentResult, { type: "pix" }>;
+
+    expect(result.qrCodeUrl).toBe("000201pixpayload");
+    expect(result.expiresAt).toBeNull();
+  });
+
+  it("falls back to the test-mode tax id for boleto without taxId", async () => {
+    const paymentIntents = makeFakeIntents({
+      id: "pi_boleto_3",
+      next_action: {
+        boleto_display_details: {
+          hosted_voucher_url: "https://stripe.test/boleto/hosted",
+          pdf: "https://stripe.test/boleto/voucher.pdf",
+          expires_at: 1780000000,
+        },
+      },
+    });
+    const gateway = new StripePaymentGateway({ paymentIntents } as never);
+
+    await gateway.createPaymentIntent({
+      method: "boleto",
+      amountCents: 3998,
+      orderId: "order-1",
+      paymentId: "pay-1",
+      billingDetails: { name: BILLING.name, email: BILLING.email },
+    });
+
+    expect(paymentIntents.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payment_method_data: {
+          billing_details: {
+            name: BILLING.name,
+            email: BILLING.email,
+            tax_id: "000.000.000-00",
+          },
+        },
+      }),
+    );
+  });
 });

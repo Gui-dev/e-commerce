@@ -28,7 +28,7 @@ export class StripePaymentGateway implements PaymentGateway {
         payment_method_types: ["card"],
       });
       if (!paymentIntent.client_secret) {
-        throw new Error("Stripe did not return a client_secret");
+        throw new Error(`Stripe did not return a client_secret for ${paymentIntent.id}`);
       }
       return {
         type: "card",
@@ -53,7 +53,7 @@ export class StripePaymentGateway implements PaymentGateway {
       });
       const pix = paymentIntent.next_action?.pix_display_qr_code;
       if (!pix?.data) {
-        throw new Error("Stripe did not return pix next_action data");
+        throw new Error(`Stripe did not return pix next_action data for ${paymentIntent.id}`);
       }
       return {
         type: "pix",
@@ -81,7 +81,7 @@ export class StripePaymentGateway implements PaymentGateway {
     });
     const boleto = paymentIntent.next_action?.boleto_display_details;
     if (!boleto?.hosted_voucher_url) {
-      throw new Error("Stripe did not return boleto next_action data");
+      throw new Error(`Stripe did not return boleto next_action data for ${paymentIntent.id}`);
     }
     return {
       type: "boleto",
