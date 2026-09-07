@@ -146,6 +146,19 @@ export interface Payment {
   updatedAt: string;
 }
 
+export interface PaymentIntentResponse {
+  type: "card" | "pix" | "boleto";
+  paymentIntentId: string;
+  clientSecret?: string;
+  qrCodeUrl?: string;
+  qrCodePngUrl?: string;
+  qrCodeSvgUrl?: string;
+  hostedInstructionsUrl?: string;
+  hostedVoucherUrl?: string;
+  pdfUrl?: string;
+  expiresAt?: string | null;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
