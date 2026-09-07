@@ -4,12 +4,15 @@ import { api } from "@/lib/api";
 import type { Order, OrderStatus } from "@/types";
 import { useEffect, useRef, useState } from "react";
 
+const TERMINAL_STATUSES: OrderStatus[] = ["paid", "shipped", "delivered", "cancelled"];
+
 export function usePaymentStatus(orderId: string, onPaid?: () => void) {
   const [status, setStatus] = useState<OrderStatus>("pending");
   const onPaidRef = useRef(onPaid);
   onPaidRef.current = onPaid;
 
   useEffect(() => {
+    if (TERMINAL_STATUSES.includes(status)) return;
     let cancelled = false;
     const timer = setInterval(async () => {
       const order = await api.get<Order>(`/orders/${orderId}`).catch(() => null);

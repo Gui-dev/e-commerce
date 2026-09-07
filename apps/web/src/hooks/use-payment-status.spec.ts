@@ -31,6 +31,7 @@ describe("usePaymentStatus", () => {
     await vi.advanceTimersByTimeAsync(2500);
     await vi.advanceTimersByTimeAsync(0);
     expect(onPaid).toHaveBeenCalled();
+    expect(getSpy).toHaveBeenCalledTimes(3);
   });
 
   it("keeps polling order errors without crashing", async () => {
