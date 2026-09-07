@@ -2070,47 +2070,54 @@ git commit -m "feat(checkout): two-step checkout with stripe payment panels"
 **Files:**
 - Modify: `apps/web/tests/e2e/checkout-flow.spec.ts`
 
-- [ ] **Step 1: Rewrite the webhook trigger step**
+- [x] **Step 1: Rewrite the webhook trigger step**
 
 O teste antigo assinava `/webhooks/payment` com HMAC próprio. Troque para um evento Stripe assinado contra `/webhooks/stripe`:
 
 ```ts
 import { expect, test } from "@playwright/test";
-import Stripe from "stripe";
+import { createHmac, randomUUID } from "node:crypto";
 
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-if (!WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET not set");
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+if (!STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET not set");
+
+const buildStripeSignature = (payload: string): string => {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = createHmac("sha256", STRIPE_WEBHOOK_SECRET)
+    .update(`${timestamp}.${payload}`)
+    .digest("hex");
+  return `t=${timestamp},v1=${signature}`;
+};
 
 test("complete checkout and confirm payment via stripe webhook", async ({ page, request }) => {
   // ... pré-requisitos: usuário logado, item no carrinho (manter o setup existente)
 
-  // 1. Checkout via UI: preencher endereço (incluindo CPF), selecionar PIX, finalizar.
-  // 2. Capturar orderId da URL (/checkout/success?orderId=...) OU do response da API.
+  // 1. Checkout via API: POST /checkout (orderId) → POST /checkout/payment-intent { orderId, taxId }.
 
-  // 3. Buscar o payment do pedido (para usar metadata correto)
+  // 2. Buscar o payment do pedido (para usar metadata correto)
   const orderRes = await request.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const order = await orderRes.json();
   const paymentId = order.payment.id;
 
-  // 4. Construir e assinar um evento payment_intent.succeeded
-  const event = {
-    id: "evt_e2e_1",
+  // 3. Construir e assinar um evento payment_intent.succeeded
+  const payload = JSON.stringify({
+    id: `evt_${randomUUID()}`,
     object: "event",
     type: "payment_intent.succeeded",
     data: {
       object: {
-        id: "pi_e2e_1",
+        id: `pi_${randomUUID()}`,
         object: "payment_intent",
         status: "succeeded",
         metadata: { orderId, paymentId },
       },
     },
-  };
-  const payload = JSON.stringify(event);
-  const stripe = new Stripe("sk_test_e2e", { apiVersion: "2026-08-26.dahlia" });
-  const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: WEBHOOK_SECRET });
+  });
+  const signature = buildStripeSignature(payload);
+  // buildStripeSignature: t=<unixSeconds>,v1=<hmac_sha256(secret, "<t>.<payload>")> via node:crypto
+  // (mesma string `payload` assinada e enviada no body — sem re-serialização)
 
   const res = await request.post(`${process.env.NEXT_PUBLIC_API_URL}/webhooks/stripe`, {
     headers: { "stripe-signature": signature },
@@ -2118,22 +2125,26 @@ test("complete checkout and confirm payment via stripe webhook", async ({ page, 
   });
   expect(res.ok()).toBeTruthy();
 
-  // 5. Conferir status paid (via API ou UI)
+  // 4. Conferir status paid (via API ou UI)
 });
 ```
 
-> Operação manual necessária em dev para o teste rodar: `stripe listen --forward-to http://localhost:3001/webhooks/stripe` com o `whsec` exportado como `STRIPE_WEBHOOK_SECRET` no ambiente do e2e.
+> Operação manual necessária em dev para o teste rodar: `stripe listen --forward-to http://localhost:3001/webhooks/stripe` com o `whsec` exportado como `STRIPE_WEBHOOK_SECRET` (também documentado em `apps/web/.env.example`).
+>
+> Nota: a assinatura é calculada manualmente com `node:crypto` (HMAC-SHA256 de `"<t>.<payload>"`), sem depender do SDK `stripe` como devDependency do app web — `stripe.webhooks.constructEvent` aceita o header manual padrão `t=...,v1=...`.
 
 - [ ] **Step 2: Run e2e**
 
 Run: `pnpm --filter @kronostore/web test:e2e`
 Expected: PASS com infra + CLI rodando (inclui as etapas que já dependiam de infra).
+**Nota:** adiada para Task 16 (infra Postgres/Redis down).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add apps/web/tests/e2e/checkout-flow.spec.ts
-git commit -m "test(e2e): stripe webhook flow in checkout"
+git commit -m "test(e2e): trigger stripe webhook in checkout flow"
+# + test(e2e): randomize stripe event ids and document webhook secret (env.example + ids)
 ```
 
 ---
