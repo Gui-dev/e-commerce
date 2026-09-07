@@ -1,5 +1,5 @@
 import { OrderNotFoundError } from "../../orders/domain/order.js";
-import type { PaymentGateway } from "../domain/payment-gateway.js";
+import type { BillingAddress, PaymentGateway } from "../domain/payment-gateway.js";
 import type { PaymentRepository } from "../domain/payment-repository.js";
 
 export interface GeneratePaymentIntentInput {
@@ -7,6 +7,7 @@ export interface GeneratePaymentIntentInput {
   userEmail: string;
   billingName: string;
   taxId?: string;
+  address?: BillingAddress;
 }
 
 export class GeneratePaymentIntentUseCase {
@@ -30,6 +31,7 @@ export class GeneratePaymentIntentUseCase {
         name: input.billingName,
         email: input.userEmail,
         taxId: input.taxId,
+        address: input.address,
       },
     });
   }

@@ -92,6 +92,13 @@ export function createCheckoutRoutes(
           userEmail: request.user.email,
           billingName: order.shippingName ?? request.user.name,
           taxId,
+          address: {
+            line1: order.shippingStreet ?? "",
+            city: order.shippingCity ?? "",
+            state: order.shippingState ?? "",
+            postalCode: order.shippingZip ?? "",
+            country: order.shippingCountry ?? "BR",
+          },
         });
 
         return reply.send(result);

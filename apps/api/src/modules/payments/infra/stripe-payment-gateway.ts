@@ -42,6 +42,7 @@ export class StripePaymentGateway implements PaymentGateway {
         ...base,
         payment_method_types: ["pix"],
         payment_method_data: {
+          type: "pix",
           pix: {},
           billing_details: {
             name: input.billingDetails.name,
@@ -71,10 +72,18 @@ export class StripePaymentGateway implements PaymentGateway {
       payment_method_types: ["boleto"],
       payment_method_options: { boleto: { expires_after_days: 3 } },
       payment_method_data: {
+        type: "boleto",
+        boleto: { tax_id: input.billingDetails.taxId ?? "000.000.000-00" },
         billing_details: {
           name: input.billingDetails.name,
           email: input.billingDetails.email,
-          tax_id: input.billingDetails.taxId ?? "000.000.000-00",
+          address: input.billingDetails.address && {
+            line1: input.billingDetails.address.line1,
+            city: input.billingDetails.address.city,
+            state: input.billingDetails.address.state,
+            postal_code: input.billingDetails.address.postalCode,
+            country: input.billingDetails.address.country,
+          },
         },
       } as never,
       confirm: true,

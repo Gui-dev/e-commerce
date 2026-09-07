@@ -10,7 +10,26 @@ function makeFakeIntents(returnValue: unknown): FakePaymentIntents {
   return { create: vi.fn().mockResolvedValue(returnValue) };
 }
 
-const BILLING = { name: "Maria Silva", email: "maria@example.com", taxId: "000.000.000-00" };
+const BILLING = {
+  name: "Maria Silva",
+  email: "maria@example.com",
+  taxId: "000.000.000-00",
+  address: {
+    line1: "Rua das Flores 123",
+    city: "Sao Paulo",
+    state: "SP",
+    postalCode: "01000-000",
+    country: "BR",
+  },
+};
+
+const BILLING_ADDRESS = {
+  line1: "Rua das Flores 123",
+  city: "Sao Paulo",
+  state: "SP",
+  postal_code: "01000-000",
+  country: "BR",
+};
 
 describe("StripePaymentGateway", () => {
   it("creates a card PaymentIntent with amount, brl and metadata", async () => {
@@ -68,6 +87,7 @@ describe("StripePaymentGateway", () => {
       expect.objectContaining({
         payment_method_types: ["pix"],
         payment_method_data: {
+          type: "pix",
           pix: {},
           billing_details: {
             name: BILLING.name,
@@ -112,10 +132,12 @@ describe("StripePaymentGateway", () => {
         payment_method_types: ["boleto"],
         payment_method_options: { boleto: { expires_after_days: 3 } },
         payment_method_data: {
+          type: "boleto",
+          boleto: { tax_id: BILLING.taxId },
           billing_details: {
             name: BILLING.name,
             email: BILLING.email,
-            tax_id: BILLING.taxId,
+            address: BILLING_ADDRESS,
           },
         },
         confirm: true,
@@ -215,10 +237,11 @@ describe("StripePaymentGateway", () => {
     expect(paymentIntents.create).toHaveBeenCalledWith(
       expect.objectContaining({
         payment_method_data: {
+          type: "boleto",
+          boleto: { tax_id: "000.000.000-00" },
           billing_details: {
             name: BILLING.name,
             email: BILLING.email,
-            tax_id: "000.000.000-00",
           },
         },
       }),

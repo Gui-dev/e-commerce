@@ -1,9 +1,18 @@
 import type { PaymentMethod } from "./payment.js";
 
+export interface BillingAddress {
+  line1: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
 export interface BillingDetails {
   name: string;
   email: string;
   taxId?: string;
+  address?: BillingAddress;
 }
 
 export interface CardIntentResult {
