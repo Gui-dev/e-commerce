@@ -22,10 +22,13 @@ export function PixPanel({
 
   async function handleCopy() {
     setCopying(true);
-    await navigator.clipboard.writeText(copyCode);
-    setCopied(true);
-    setCopying(false);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(copyCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } finally {
+      setCopying(false);
+    }
   }
 
   return (

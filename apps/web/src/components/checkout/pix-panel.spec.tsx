@@ -50,5 +50,6 @@ describe("<PixPanel />", () => {
     await user.click(screen.getByRole("button", { name: /copiar/i }));
 
     expect(copyMock).toHaveBeenCalledWith("000201pix");
+    expect(screen.getByRole("button", { name: /copiado/i })).toBeInTheDocument();
   });
 });
