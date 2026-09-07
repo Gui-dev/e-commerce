@@ -9,7 +9,10 @@ const TERMINAL_STATUSES: OrderStatus[] = ["paid", "shipped", "delivered", "cance
 export function usePaymentStatus(orderId: string, onPaid?: () => void) {
   const [status, setStatus] = useState<OrderStatus>("pending");
   const onPaidRef = useRef(onPaid);
-  onPaidRef.current = onPaid;
+
+  useEffect(() => {
+    onPaidRef.current = onPaid;
+  }, [onPaid]);
 
   useEffect(() => {
     if (TERMINAL_STATUSES.includes(status)) return;
