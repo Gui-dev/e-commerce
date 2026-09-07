@@ -24,15 +24,19 @@ export class ProcessStripeWebhookUseCase {
     if (!payment) return null;
 
     if (event.type === "payment_intent.succeeded") {
-      if (payment.status === "approved") return { paymentId, orderId };
-      await this.paymentRepository.updateStatus(payment.id, "approved", paymentIntent.id);
+      if (payment.status === "approved" || payment.status === "refunded") {
+        return { paymentId, orderId };
+      }
       await this.orderRepository.updateStatus(payment.orderId, "paid");
+      await this.paymentRepository.updateStatus(payment.id, "approved", paymentIntent.id);
       return { paymentId, orderId };
     }
 
-    if (payment.status === "rejected") return { paymentId, orderId };
-    await this.paymentRepository.updateStatus(payment.id, "rejected", paymentIntent.id);
+    if (payment.status === "approved" || payment.status === "refunded") {
+      return { paymentId, orderId };
+    }
     await this.orderRepository.updateStatus(payment.orderId, "cancelled");
+    await this.paymentRepository.updateStatus(payment.id, "rejected", paymentIntent.id);
     return { paymentId, orderId };
   }
 }

@@ -82,6 +82,17 @@ describe("ProcessStripeWebhookUseCase", () => {
     expect(updateOrderStatus).not.toHaveBeenCalled();
   });
 
+  it("does not cancel a paid order when failed arrives after success", async () => {
+    findByPaymentId.mockResolvedValue({ ...PAYMENT, status: "approved" });
+    const result = await useCase.execute(
+      eventPayload("payment_intent.payment_failed", "requires_payment_method") as never,
+    );
+
+    expect(updatePaymentStatus).not.toHaveBeenCalled();
+    expect(updateOrderStatus).not.toHaveBeenCalled();
+    expect(result).toEqual({ paymentId: "pay-1", orderId: "order-1" });
+  });
+
   it("is a no-op for unhandled event types", async () => {
     const result = await useCase.execute(eventPayload("charge.refunded", "succeeded") as never);
 
