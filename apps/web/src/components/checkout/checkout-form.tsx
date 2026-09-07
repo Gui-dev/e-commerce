@@ -5,15 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { usePaymentStatus } from "@/hooks/use-payment-status";
 import { api } from "@/lib/api";
 import { formatBRL } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import type { Order, PaymentMethod } from "@/types";
+import type { Order, PaymentIntentResponse, PaymentMethod } from "@/types";
 import { CreditCard, Loader2, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BoletoPanel } from "./boleto-panel";
+import { CreditCardForm } from "./credit-card-form";
 import { PaymentPicker } from "./payment-picker";
+import { PixPanel } from "./pix-panel";
 
 interface Address {
   name: string;
@@ -21,6 +25,7 @@ interface Address {
   city: string;
   state: string;
   zip: string;
+  taxId: string;
 }
 
 export function CheckoutForm() {
@@ -39,9 +44,17 @@ export function CheckoutForm() {
     city: "",
     state: "",
     zip: "",
+    taxId: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<"form" | "payment">("form");
+  const [paymentStep, setPaymentStep] = useState<PaymentIntentResponse | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+
+  const paymentStatus = usePaymentStatus(orderId ?? "", () => {
+    if (orderId) router.push(`/checkout/success?orderId=${orderId}`);
+  });
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
 
@@ -64,8 +77,15 @@ export function CheckoutForm() {
         paymentMethod,
       });
 
+      const paymentIntent = await api.post<PaymentIntentResponse>("/checkout/payment-intent", {
+        orderId: order.id,
+        taxId: address.taxId || undefined,
+      });
+
+      setOrderId(order.id);
+      setPaymentStep(paymentIntent);
+      setStep("payment");
       clearCart();
-      router.push(`/checkout/success?orderId=${order.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao finalizar compra";
       setError(message);
@@ -74,7 +94,7 @@ export function CheckoutForm() {
     }
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && step === "form") {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Seu carrinho está vazio.</p>
@@ -149,6 +169,16 @@ export function CheckoutForm() {
                 required
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="taxId">CPF/CNPJ</Label>
+              <Input
+                id="taxId"
+                placeholder="000.000.000-00"
+                value={address.taxId}
+                onChange={(e) => handleAddressChange("taxId", e.target.value)}
+                required
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -160,7 +190,37 @@ export function CheckoutForm() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <PaymentPicker value={paymentMethod} onChange={setPaymentMethod} />
+            <PaymentPicker
+              value={paymentMethod}
+              onChange={step === "payment" ? () => {} : setPaymentMethod}
+            />
+            {step === "payment" && paymentStep && (
+              <div className="mt-4">
+                {paymentStep.type === "card" && paymentStep.clientSecret && (
+                  <CreditCardForm
+                    clientSecret={paymentStep.clientSecret}
+                    onPaymentSuccess={() =>
+                      orderId && router.push(`/checkout/success?orderId=${orderId}`)
+                    }
+                    onCancel={() => setStep("form")}
+                  />
+                )}
+                {paymentStep.type === "pix" && (
+                  <PixPanel
+                    qrCodePngUrl={paymentStep.qrCodePngUrl ?? ""}
+                    hostedInstructionsUrl={paymentStep.hostedInstructionsUrl ?? ""}
+                    copyCode={paymentStep.qrCodeUrl ?? ""}
+                    onPaymentSuccess={() => {}}
+                  />
+                )}
+                {paymentStep.type === "boleto" && (
+                  <BoletoPanel
+                    hostedVoucherUrl={paymentStep.hostedVoucherUrl ?? ""}
+                    onPaymentSuccess={() => {}}
+                  />
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
