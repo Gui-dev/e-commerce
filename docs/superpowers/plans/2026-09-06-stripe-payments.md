@@ -1756,7 +1756,7 @@ import { BoletoPanel } from "./boleto-panel";
 
 describe("<BoletoPanel />", () => {
   it("renders the download link and instructions", () => {
-    render(<BoletoPanel hostedVoucherUrl="https://stripe.test/boleto" pdfUrl="https://stripe.test/boleto.pdf" onPaymentSuccess={() => {}} />);
+    render(<BoletoPanel hostedVoucherUrl="https://stripe.test/boleto" onPaymentSuccess={() => {}} />);
 
     expect(screen.getByRole("link", { name: /baixar boleto/i })).toHaveAttribute(
       "href",
@@ -1764,8 +1764,16 @@ describe("<BoletoPanel />", () => {
     );
     expect(screen.getByText(/pagar/i)).toBeInTheDocument();
   });
+
+  it("does not render the link when hostedVoucherUrl is empty", () => {
+    render(<BoletoPanel hostedVoucherUrl="" onPaymentSuccess={() => {}} />);
+
+    expect(screen.queryByRole("link", { name: /baixar boleto/i })).not.toBeInTheDocument();
+  });
 });
 ```
+
+> Nota: o spec original do plano passava erroneamente um prop `pdfUrl` inexistente — removido; o componente só tem `hostedVoucherUrl`.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -1779,7 +1787,8 @@ Create `apps/web/src/components/checkout/boleto-panel.tsx`:
 ```tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
 interface BoletoPanelProps {
@@ -1795,13 +1804,22 @@ export function BoletoPanel({ hostedVoucherUrl, onPaymentSuccess }: BoletoPanelP
         Seu boleto foi gerado. Pague dentro do prazo para confirmar o pedido. Você será
         redirecionado assim que o pagamento for confirmado.
       </p>
-      <a href={hostedVoucherUrl} target="_blank" rel="noreferrer">
-        <Button type="button">Baixar boleto</Button>
-      </a>
+      {hostedVoucherUrl && (
+        <a
+          href={hostedVoucherUrl}
+          target="_blank"
+          rel="noreferrer"
+          className={cn(buttonVariants({ variant: "default" }))}
+        >
+          Baixar boleto
+        </a>
+      )}
     </div>
   );
 }
 ```
+
+> Nota: o link é renderizado como `<a>` estilizado com `buttonVariants` (evita `<button>` aninhado em `<a>`) e é omitido quando `hostedVoucherUrl` é vazio. `onPaymentSuccess` permanece prop obrigatória, removida na Task 14.
 
 - [ ] **Step 4: Run test to verify it passes**
 
