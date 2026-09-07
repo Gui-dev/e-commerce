@@ -39,8 +39,7 @@ describe("ProcessStripeWebhookUseCase", () => {
     updatePaymentStatus = vi.fn();
     updateOrderStatus = vi.fn();
     useCase = new ProcessStripeWebhookUseCase(
-      { findById: findByPaymentId } as never,
-      { updateStatus: updatePaymentStatus } as never,
+      { findById: findByPaymentId, updateStatus: updatePaymentStatus } as never,
       { updateStatus: updateOrderStatus } as never,
     );
   });

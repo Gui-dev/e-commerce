@@ -1,17 +1,11 @@
 import type Stripe from "stripe";
-import type { Order } from "../../orders/domain/order.js";
+import type { OrderRepository } from "../../orders/domain/order-repository.js";
 import type { PaymentRepository } from "../../payments/domain/payment-repository.js";
-import type { Payment, PaymentStatus } from "../../payments/domain/payment.js";
 
 export class ProcessStripeWebhookUseCase {
   constructor(
     private readonly paymentRepository: PaymentRepository,
-    private readonly paymentStatusUpdater: {
-      updateStatus(id: string, status: PaymentStatus, externalId?: string): Promise<Payment>;
-    },
-    private readonly orderStatusUpdater: {
-      updateStatus(id: string, status: Order["status"]): Promise<Order>;
-    },
+    private readonly orderRepository: OrderRepository,
   ) {}
 
   async execute(event: Stripe.Event) {
@@ -31,14 +25,14 @@ export class ProcessStripeWebhookUseCase {
 
     if (event.type === "payment_intent.succeeded") {
       if (payment.status === "approved") return { paymentId, orderId };
-      await this.paymentStatusUpdater.updateStatus(payment.id, "approved", paymentIntent.id);
-      await this.orderStatusUpdater.updateStatus(payment.orderId, "paid");
+      await this.paymentRepository.updateStatus(payment.id, "approved", paymentIntent.id);
+      await this.orderRepository.updateStatus(payment.orderId, "paid");
       return { paymentId, orderId };
     }
 
     if (payment.status === "rejected") return { paymentId, orderId };
-    await this.paymentStatusUpdater.updateStatus(payment.id, "rejected", paymentIntent.id);
-    await this.orderStatusUpdater.updateStatus(payment.orderId, "cancelled");
+    await this.paymentRepository.updateStatus(payment.id, "rejected", paymentIntent.id);
+    await this.orderRepository.updateStatus(payment.orderId, "cancelled");
     return { paymentId, orderId };
   }
 }
