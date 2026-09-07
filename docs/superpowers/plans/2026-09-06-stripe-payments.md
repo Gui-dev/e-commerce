@@ -2133,11 +2133,11 @@ test("complete checkout and confirm payment via stripe webhook", async ({ page, 
 >
 > Nota: a assinatura é calculada manualmente com `node:crypto` (HMAC-SHA256 de `"<t>.<payload>"`), sem depender do SDK `stripe` como devDependency do app web — `stripe.webhooks.constructEvent` aceita o header manual padrão `t=...,v1=...`.
 
-- [ ] **Step 2: Run e2e**
+- [x] **Step 2: Run e2e**
 
 Run: `pnpm --filter @kronostore/web test:e2e`
 Expected: PASS com infra + CLI rodando (inclui as etapas que já dependiam de infra).
-**Nota:** adiada para Task 16 (infra Postgres/Redis down).
+Resultado: **PASS** via boleto (PIX não ativado na conta de teste — ver Task 16).
 
 - [x] **Step 3: Commit**
 
@@ -2160,9 +2160,21 @@ git commit -m "test(e2e): trigger stripe webhook in checkout flow"
   - `pnpm --filter @kronostore/web test`
   - `git status` para confirmar árvore limpa de mudanças não commitadas
 
-- [ ] **Step 1: Run all verification**
+- [x] **Step 1: Run all verification**
 
 Expected: tudo PASS (salvo specs de integração que exigem Postgres/Redis rodando — nesse caso rodar `pnpm infra:up` antes).
+
+Resultado (infra up, servers do worktree ativos):
+- `pnpm --filter @kronostore/api test` → **305 passed (42 files)**, inclui spec DB da Task 8.
+- `pnpm --filter @kronostore/api typecheck` → 0.
+- `pnpm --filter @kronostore/web test` → **96 passed**; `web typecheck` → 0; `web lint` → 0 erros (3 warnings esperados).
+- e2e `checkout-flow` → **PASS (boleto)**, 3/3 estável isolado.
+
+> **Descoberta real (e2e):** o Stripe exigia `payment_method_data[type]` e (para boleto) `boleto.tax_id` + `billing_details.address` — o gateway enviava payload inválido que os mocks do unit test não capturavam. Corrigido em `fix(payments): send boleto tax_id and billing address to Stripe` (`0f7d8d5`).
+>
+> **Decisão de método:** PIX **não está ativado** na conta de teste (tipo exige convite/invite para conta brasileira — `payment_intent_invalid_parameter`). O e2e roda com **boleto** (ativo) — mesmo pipeline (checkout → payment-intent real → webhook assinado → Pago). PIX segue na UI/testes unitários; para ativar o e2e PIX basta habilitar o tipo no dashboard e trocar `paymentMethod: "pix"` no spec + asserções de resposta.
+>
+> Obs.: `stripe trigger payment_intent.succeeded` NÃO serve (o PaymentIntent gerado vem sem `metadata` — o use case ignora). A assinatura manual com `metadata: {orderId, paymentId}` é o caminho implementado.
 
 - [ ] **Step 2: Commit quaisquer ajustes de formatação**
 
@@ -2171,6 +2183,9 @@ pnpm biome check --write <arquivos-alterados>
 git add -A
 git commit -m "chore: formatting after stripe integration"
 ```
+(Nada pendente de formatação; commits de code já feitos na branch.)
+
+> **Follow-ups registrados:** (a) ativar PIX (invite) para e2e PIX; (b) flakiness pré-existente de outros specs e2e em run completo (`browse-products`, `catalog-browse` — corrida de dados no DB compartilhado, 'Eletrônicos' duplicado); (c) responseSchema + idempotência em `/checkout/payment-intent`; (d) observabilidade do webhook + reaproveitar `stripeClient` no verifier; (e) `OnVote` card double-nav guard + retry idempotente no checkout.
 
 ---
 
