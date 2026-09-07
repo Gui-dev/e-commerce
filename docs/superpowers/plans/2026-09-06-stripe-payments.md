@@ -6,7 +6,7 @@
 
 **Architecture:** Backend cria PaymentIntent conforme o método (`card` → clientSecret; `pix`/`boleto` → confirm imediato server-side e retorna dados do `next_action`). Webhook Stripe real (`payment_intent.succeeded`/`payment_failed`) é a fonte da verdade do estado. Frontend usa Stripe Elements (cartão) e painéis com polling (PIX/boleto).
 
-**Tech Stack:** Fastify + TypeScript, `stripe` (Node SDK, apiVersion 2024-06-20), `@stripe/stripe-js` + `@stripe/react-stripe-js` (Next.js App Router), Vitest (unit), Playwright (e2e), Stripe CLI (webhook forwarding), sandbox Stripe test mode.
+**Tech Stack:** Fastify + TypeScript, `stripe` (Node SDK, apiVersion 2026-08-26.dahlia), `@stripe/stripe-js` + `@stripe/react-stripe-js` (Next.js App Router), Vitest (unit), Playwright (e2e), Stripe CLI (webhook forwarding), sandbox Stripe test mode.
 
 **External facts (verificados em 2026-09-06):**
 - API roda na porta **3001** → webhook: `stripe listen --forward-to http://localhost:3001/webhooks/stripe`.
@@ -14,6 +14,8 @@
 - Test mode PIX/boleto é simulado pelo `billing_details.email`: `succeed_immediately@...` → `payment_intent.succeeded` em segundos; `expire_immediately@...` → `payment_failed` em segundos. Tax id de teste: `000.000.000-00`.
 - O webhook node SDK: `stripe.webhooks.constructEvent(rawBody, signature, secret)` e `stripe.webhooks.generateTestHeaderString({ payload, secret })`.
 - `paymentIntent.metadata` recebe `{ orderId, paymentId }` na criação → o webhook mapeia o evento ao pagamento local.
+- **Correção verificada (2026-09-07):** o campo real do `next_action` para PIX é `pix_display_qr_code` (flat: `data`, `image_url_png`, `image_url_svg`, `hosted_instructions_url`, `expires_at`) — NÃO `pix.qr_code`. Confirmado nas docs oficiais (`payment_intent.next_action.pix_display_qr_code.data` etc.).
+- **Correção verificada (2026-09-07):** `stripe@22.6.1` só aceita o literal de `apiVersion` `"2026-08-26.dahlia"` (constante exportada `ApiVersion`) — NÃO aceita `"2024-06-20"`. Usar `"2026-08-26.dahlia"` em todas as instanciações (`stripe-client.ts`, `verify-stripe-signature.ts`, specs via `generateTestHeaderString`).
 
 ---
 
@@ -214,14 +216,12 @@ describe("StripePaymentGateway", () => {
     const paymentIntents = makeFakeIntents({
       id: "pi_pix_1",
       next_action: {
-        pix: {
+        pix_display_qr_code: {
+          data: "000201pixpayload",
+          image_url_png: "https://stripe.test/qr.png",
+          image_url_svg: "https://stripe.test/qr.svg",
           hosted_instructions_url: "https://stripe.test/pix/instructions",
           expires_at: 1780000000,
-          qr_code: {
-            data: "000201pixpayload",
-            image_url_png: "https://stripe.test/qr.png",
-            image_url_svg: "https://stripe.test/qr.svg",
-          },
         },
       },
     });
@@ -381,20 +381,18 @@ export class StripePaymentGateway implements PaymentGateway {
         },
         confirm: true,
       });
-      const pix = paymentIntent.next_action?.pix;
-      if (!pix?.qr_code?.data) {
+      const pix = paymentIntent.next_action?.pix_display_qr_code;
+      if (!pix?.data) {
         throw new Error("Stripe did not return pix next_action data");
       }
       return {
         type: "pix",
         paymentIntentId: paymentIntent.id,
-        qrCodeUrl: pix.qr_code.data,
-        qrCodePngUrl: pix.qr_code?.image_url_png ?? "",
-        qrCodeSvgUrl: pix.qr_code?.image_url_svg ?? "",
+        qrCodeUrl: pix.data,
+        qrCodePngUrl: pix.image_url_png ?? "",
+        qrCodeSvgUrl: pix.image_url_svg ?? "",
         hostedInstructionsUrl: pix.hosted_instructions_url ?? "",
-        expiresAt: pix.expires_at
-          ? new Date(pix.expires_at * 1000).toISOString()
-          : null,
+        expiresAt: pix.expires_at ? new Date(pix.expires_at * 1000).toISOString() : null,
       };
     }
 
@@ -435,7 +433,7 @@ import Stripe from "stripe";
 import { env } from "../../../env.js";
 
 export const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2026-08-26.dahlia",
 });
 ```
 
@@ -958,7 +956,7 @@ export const verifyStripeSignature: preHandlerHookHandler = async (request, repl
 
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_placeholder", {
-      apiVersion: "2024-06-20",
+      apiVersion: "2026-08-26.dahlia",
     });
     request.stripeEvent = stripe.webhooks.constructEvent(request.rawBody, signature, secret);
   } catch {
@@ -1069,7 +1067,7 @@ function createStripeEvent(
     },
   };
   const payload = JSON.stringify(event);
-  const stripe = new Stripe(TEST_SECRET_KEY, { apiVersion: "2024-06-20" });
+  const stripe = new Stripe(TEST_SECRET_KEY, { apiVersion: "2026-08-26.dahlia" });
   const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: TEST_WEBHOOK_SECRET });
   return { payload, signature };
 }
@@ -2043,7 +2041,7 @@ test("complete checkout and confirm payment via stripe webhook", async ({ page, 
     },
   };
   const payload = JSON.stringify(event);
-  const stripe = new Stripe("sk_test_e2e", { apiVersion: "2024-06-20" });
+  const stripe = new Stripe("sk_test_e2e", { apiVersion: "2026-08-26.dahlia" });
   const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: WEBHOOK_SECRET });
 
   const res = await request.post(`${process.env.NEXT_PUBLIC_API_URL}/webhooks/stripe`, {
