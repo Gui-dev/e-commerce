@@ -94,7 +94,12 @@ describe("Stripe webhook routes", () => {
 
   it("should reject request without stripe-signature header", async () => {
     const { payload } = createStripeEvent("payment_intent.succeeded", "succeeded", paymentId);
-    const res = await app.inject({ method: "POST", url: "/webhooks/stripe", payload });
+    const res = await app.inject({
+      method: "POST",
+      url: "/webhooks/stripe",
+      headers: { "content-type": "application/json" },
+      payload,
+    });
 
     expect(res.statusCode).toBe(400);
   });
@@ -104,7 +109,7 @@ describe("Stripe webhook routes", () => {
     const res = await app.inject({
       method: "POST",
       url: "/webhooks/stripe",
-      headers: { "stripe-signature": "t=1,v1=invalid" },
+      headers: { "stripe-signature": "t=1,v1=invalid", "content-type": "application/json" },
       payload,
     });
 
@@ -120,7 +125,7 @@ describe("Stripe webhook routes", () => {
     const res = await app.inject({
       method: "POST",
       url: "/webhooks/stripe",
-      headers: { "stripe-signature": signature },
+      headers: { "stripe-signature": signature, "content-type": "application/json" },
       payload,
     });
 
@@ -145,7 +150,7 @@ describe("Stripe webhook routes", () => {
     const res = await app.inject({
       method: "POST",
       url: "/webhooks/stripe",
-      headers: { "stripe-signature": signature },
+      headers: { "stripe-signature": signature, "content-type": "application/json" },
       payload,
     });
 
