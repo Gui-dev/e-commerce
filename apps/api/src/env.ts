@@ -18,6 +18,9 @@ const envSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
   API_PORT: z.coerce.number().default(3001),
+  STRIPE_SECRET_KEY: z.string().regex(/^sk_test_/),
+  STRIPE_PUBLISHABLE_KEY: z.string().regex(/^pk_test_/),
+  STRIPE_WEBHOOK_SECRET: z.string().regex(/^whsec_/),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   CORS_ORIGIN: z.string().optional(),
 });
