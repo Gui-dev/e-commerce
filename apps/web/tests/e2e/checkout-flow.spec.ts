@@ -132,12 +132,12 @@ test.describe("Checkout Webhook Flow", () => {
     await expect(page.getByText("Pendente").first()).toBeVisible();
 
     const payload = JSON.stringify({
-      id: "evt_e2e_1",
+      id: `evt_${randomUUID()}`,
       object: "event",
       type: "payment_intent.succeeded",
       data: {
         object: {
-          id: "pi_e2e_1",
+          id: `pi_${randomUUID()}`,
           object: "payment_intent",
           status: "succeeded",
           metadata: { orderId, paymentId },
