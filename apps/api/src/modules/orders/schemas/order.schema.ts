@@ -8,8 +8,14 @@ export const checkoutSchema = z.object({
     state: z.string().length(2),
     zip: z.string(),
     country: z.string().length(2).default("BR"),
+    taxId: z.string().min(11).max(18).optional(),
   }),
   paymentMethod: z.enum(["pix", "credit_card", "boleto"]),
+});
+
+export const paymentIntentSchema = z.object({
+  orderId: z.string().uuid(),
+  taxId: z.string().min(11).max(18).optional(),
 });
 
 export const createPaymentSchema = z.object({

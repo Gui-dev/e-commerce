@@ -23,6 +23,8 @@ import { DrizzleOrderRepository } from "./modules/orders/infra/drizzle-order-rep
 import { createAdminOrderRoutes } from "./modules/orders/routes/admin.js";
 import { createCheckoutRoutes } from "./modules/orders/routes/index.js";
 import { DrizzlePaymentRepository } from "./modules/payments/infra/drizzle-payment-repository.js";
+import { stripeClient } from "./modules/payments/infra/stripe-client.js";
+import { StripePaymentGateway } from "./modules/payments/infra/stripe-payment-gateway.js";
 import { createPaymentRoutes } from "./modules/payments/routes/index.js";
 import { DrizzleProductRepository } from "./modules/products/infra/drizzle-product-repository.js";
 import { imageRoutes } from "./modules/products/routes/images.js";
@@ -101,6 +103,7 @@ export async function buildApp() {
       couponRepository,
       productRepository,
       paymentRepository,
+      new StripePaymentGateway(stripeClient),
     ),
   );
 
