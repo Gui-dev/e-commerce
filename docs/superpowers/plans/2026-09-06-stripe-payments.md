@@ -1310,8 +1310,8 @@ git commit -m "feat(web): stripe loader and payment intent types"
 
 ```ts
 import { api } from "@/lib/api";
-import { renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePaymentStatus } from "./use-payment-status";
 
 describe("usePaymentStatus", () => {
@@ -1339,7 +1339,9 @@ describe("usePaymentStatus", () => {
 
     await vi.advanceTimersByTimeAsync(2500);
     await vi.advanceTimersByTimeAsync(2500);
-    await waitFor(() => expect(onPaid).toHaveBeenCalled());
+    await vi.advanceTimersByTimeAsync(2500);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(onPaid).toHaveBeenCalled();
   });
 
   it("keeps polling order errors without crashing", async () => {
