@@ -765,8 +765,7 @@ describe("ProcessStripeWebhookUseCase", () => {
     updatePaymentStatus = vi.fn();
     updateOrderStatus = vi.fn();
     useCase = new ProcessStripeWebhookUseCase(
-      { findById: findByPaymentId } as never,
-      { updateStatus: updatePaymentStatus } as never,
+      { findById: findByPaymentId, updateStatus: updatePaymentStatus } as never,
       { updateStatus: updateOrderStatus } as never,
     );
   });
@@ -800,6 +799,17 @@ describe("ProcessStripeWebhookUseCase", () => {
 
     expect(updatePaymentStatus).not.toHaveBeenCalled();
     expect(updateOrderStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not cancel a paid order when failed arrives after success", async () => {
+    findByPaymentId.mockResolvedValue({ ...PAYMENT, status: "approved" });
+    const result = await useCase.execute(
+      eventPayload("payment_intent.payment_failed", "requires_payment_method") as never,
+    );
+
+    expect(updatePaymentStatus).not.toHaveBeenCalled();
+    expect(updateOrderStatus).not.toHaveBeenCalled();
+    expect(result).toEqual({ paymentId: "pay-1", orderId: "order-1" });
   });
 
   it("is a no-op for unhandled event types", async () => {
@@ -846,15 +856,19 @@ export class ProcessStripeWebhookUseCase {
     if (!payment) return null;
 
     if (event.type === "payment_intent.succeeded") {
-      if (payment.status === "approved") return { paymentId, orderId };
-      await this.paymentRepository.updateStatus(payment.id, "approved", paymentIntent.id);
+      if (payment.status === "approved" || payment.status === "refunded") {
+        return { paymentId, orderId };
+      }
       await this.orderRepository.updateStatus(payment.orderId, "paid");
+      await this.paymentRepository.updateStatus(payment.id, "approved", paymentIntent.id);
       return { paymentId, orderId };
     }
 
-    if (payment.status === "rejected") return { paymentId, orderId };
-    await this.paymentRepository.updateStatus(payment.id, "rejected", paymentIntent.id);
+    if (payment.status === "approved" || payment.status === "refunded") {
+      return { paymentId, orderId };
+    }
     await this.orderRepository.updateStatus(payment.orderId, "cancelled");
+    await this.paymentRepository.updateStatus(payment.id, "rejected", paymentIntent.id);
     return { paymentId, orderId };
   }
 }
