@@ -2,7 +2,7 @@ import { createHmac, randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 
 const API_URL = process.env.API_URL ?? "http://localhost:3001";
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
 const TEST_EMAIL = `e2e-${randomUUID()}@test.com`;
 const TEST_PASSWORD = "Test1234!";
@@ -15,6 +15,7 @@ const VALID_ADDRESS = {
   state: "SP",
   zip: "01234-567",
   country: "BR",
+  taxId: "000.000.000-00",
 };
 
 async function apiPost<T>(path: string, body: unknown, token?: string): Promise<T> {
@@ -43,10 +44,13 @@ async function apiGet<T>(path: string, token: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function computeHmac(body: object): string {
-  if (!WEBHOOK_SECRET) throw new Error("WEBHOOK_SECRET not set");
-  const raw = JSON.stringify(body);
-  return createHmac("sha256", WEBHOOK_SECRET).update(raw).digest("hex");
+function buildStripeSignature(payload: string): string {
+  if (!STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET not set");
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = createHmac("sha256", STRIPE_WEBHOOK_SECRET)
+    .update(`${timestamp}.${payload}`)
+    .digest("hex");
+  return `t=${timestamp},v1=${signature}`;
 }
 
 interface AuthResult {
@@ -109,8 +113,12 @@ test.describe("Checkout Webhook Flow", () => {
       { address: VALID_ADDRESS, paymentMethod: "pix" },
       authToken,
     );
+    const orderId = order.id;
 
-    const paymentId = order.payment?.id;
+    await apiPost("/checkout/payment-intent", { orderId, taxId: VALID_ADDRESS.taxId }, authToken);
+
+    const orderDetails = await apiGet<OrderResponse>(`/orders/${orderId}`, authToken);
+    const paymentId = orderDetails.payment?.id;
     expect(paymentId).toBeTruthy();
 
     await page.goto("/login");
@@ -119,27 +127,31 @@ test.describe("Checkout Webhook Flow", () => {
     await page.getByRole("button", { name: "Entrar" }).click();
     await page.waitForURL("/");
 
-    await page.goto(`/orders/${order.id}`);
-    await expect(page.getByText(`Pedido #${order.id.slice(0, 8)}`)).toBeVisible();
+    await page.goto(`/orders/${orderId}`);
+    await expect(page.getByText(`Pedido #${orderId.slice(0, 8)}`)).toBeVisible();
     await expect(page.getByText("Pendente").first()).toBeVisible();
 
-    const webhookBody = {
-      provider: "e2e-test",
-      event: "payment.approved",
-      paymentId,
-      externalId: "e2e-test-123",
-      status: "approved" as const,
-    };
+    const payload = JSON.stringify({
+      id: "evt_e2e_1",
+      object: "event",
+      type: "payment_intent.succeeded",
+      data: {
+        object: {
+          id: "pi_e2e_1",
+          object: "payment_intent",
+          status: "succeeded",
+          metadata: { orderId, paymentId },
+        },
+      },
+    });
 
-    const signature = computeHmac(webhookBody);
-
-    const webhookRes = await fetch(`${API_URL}/webhooks/payment`, {
+    const webhookRes = await fetch(`${API_URL}/webhooks/stripe`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-webhook-signature": signature,
+        "stripe-signature": buildStripeSignature(payload),
       },
-      body: JSON.stringify(webhookBody),
+      body: payload,
     });
 
     expect(webhookRes.ok).toBeTruthy();
@@ -148,7 +160,7 @@ test.describe("Checkout Webhook Flow", () => {
     await page.waitForFunction(() => localStorage.getItem("kronostore-auth-token") !== null, {
       timeout: 5000,
     });
-    await page.goto(`/orders/${order.id}`);
+    await page.goto(`/orders/${orderId}`);
     await expect(page.getByText("Pago").first()).toBeVisible({ timeout: 10000 });
   });
 });
