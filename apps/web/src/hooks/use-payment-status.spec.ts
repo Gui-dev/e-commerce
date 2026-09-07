@@ -46,4 +46,13 @@ describe("usePaymentStatus", () => {
     expect(getSpy).toHaveBeenCalled();
     expect(result.current).toBe("pending");
   });
+
+  it("does not poll while orderId is empty", async () => {
+    const getSpy = vi.spyOn(api, "get");
+    renderHook(() => usePaymentStatus(""));
+
+    await vi.advanceTimersByTimeAsync(2500);
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(getSpy).not.toHaveBeenCalled();
+  });
 });

@@ -52,7 +52,7 @@ export function CheckoutForm() {
   const [paymentStep, setPaymentStep] = useState<PaymentIntentResponse | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  const paymentStatus = usePaymentStatus(orderId ?? "", () => {
+  usePaymentStatus(orderId ?? "", () => {
     if (orderId) router.push(`/checkout/success?orderId=${orderId}`);
   });
 
@@ -266,22 +266,26 @@ export function CheckoutForm() {
               </span>
             </div>
 
-            {error && (
-              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
+            {step === "form" && (
+              <>
+                {error && (
+                  <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
 
-            <Button type="submit" size="lg" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                "Finalizar Compra"
-              )}
-            </Button>
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Finalizar Compra"
+                  )}
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

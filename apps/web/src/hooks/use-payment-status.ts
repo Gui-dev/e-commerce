@@ -15,6 +15,7 @@ export function usePaymentStatus(orderId: string, onPaid?: () => void) {
   }, [onPaid]);
 
   useEffect(() => {
+    if (!orderId) return;
     if (TERMINAL_STATUSES.includes(status)) return;
     let cancelled = false;
     const timer = setInterval(async () => {
