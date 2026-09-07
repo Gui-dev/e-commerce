@@ -16,4 +16,12 @@ describe("<BoletoPanel />", () => {
     ).toHaveAttribute("href", "https://stripe.test/boleto");
     expect(screen.getByText(/pagar/i)).toBeInTheDocument();
   });
+
+  it("does not render the link when hostedVoucherUrl is empty", () => {
+    render(<BoletoPanel hostedVoucherUrl="" onPaymentSuccess={() => {}} />);
+
+    expect(
+      screen.queryByRole("link", { name: /baixar boleto/i }),
+    ).not.toBeInTheDocument();
+  });
 });

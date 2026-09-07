@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
 interface BoletoPanelProps {
@@ -20,9 +21,16 @@ export function BoletoPanel({
         para confirmar o pedido. Você será redirecionado assim que o pagamento
         for confirmado.
       </p>
-      <a href={hostedVoucherUrl} target="_blank" rel="noreferrer">
-        <Button type="button">Baixar boleto</Button>
-      </a>
+      {hostedVoucherUrl && (
+        <a
+          href={hostedVoucherUrl}
+          target="_blank"
+          rel="noreferrer"
+          className={cn(buttonVariants({ variant: "default" }))}
+        >
+          Baixar boleto
+        </a>
+      )}
     </div>
   );
 }
