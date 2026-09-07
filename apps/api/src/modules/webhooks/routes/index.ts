@@ -1,48 +1,25 @@
-import type { ZodTypeProvider } from "@fastify/type-provider-zod";
 import type { FastifyInstance } from "fastify";
 import type { OrderRepository } from "../../orders/domain/order-repository.js";
-import { webhookPaymentSchema } from "../../orders/schemas/order.schema.js";
 import type { PaymentRepository } from "../../payments/domain/payment-repository.js";
-import { captureRawBody, verifyWebhookSignature } from "../middleware/verify-webhook-signature.js";
+import { captureRawBody } from "../middleware/capture-raw-body.js";
+import { verifyStripeSignature } from "../middleware/verify-stripe-signature.js";
+import { ProcessStripeWebhookUseCase } from "../use-cases/process-stripe-webhook.use-case.js";
 
 export function createWebhookRoutes(
   paymentRepository: PaymentRepository,
   orderRepository: OrderRepository,
 ) {
   return async function webhookRoutes(app: FastifyInstance) {
-    app.withTypeProvider<ZodTypeProvider>().post(
-      "/webhooks/payment",
+    app.post(
+      "/webhooks/stripe",
       {
-        schema: {
-          tags: ["Webhooks"],
-          summary: "Processar webhook de pagamento",
-          body: webhookPaymentSchema,
-        },
         preParsing: captureRawBody,
-        preHandler: verifyWebhookSignature,
+        preHandler: verifyStripeSignature,
       },
-      async (request, reply) => {
-        const { paymentId, status, externalId } = request.body;
-
-        const payment = await paymentRepository.findById(paymentId);
-        if (!payment) {
-          return reply.code(404).send({ error: "NOT_FOUND", message: "Payment not found" });
-        }
-
-        await paymentRepository.updateStatus(payment.id, status, externalId);
-
-        const orderStatusMap: Record<string, "paid" | "cancelled"> = {
-          approved: "paid",
-          rejected: "cancelled",
-          refunded: "cancelled",
-        };
-
-        const orderStatus = orderStatusMap[status];
-        if (orderStatus) {
-          await orderRepository.updateStatus(payment.orderId, orderStatus);
-        }
-
-        return reply.code(200).send({ received: true });
+      async (request) => {
+        const event = request.stripeEvent!;
+        await new ProcessStripeWebhookUseCase(paymentRepository, orderRepository).execute(event);
+        return { received: true };
       },
     );
   };
