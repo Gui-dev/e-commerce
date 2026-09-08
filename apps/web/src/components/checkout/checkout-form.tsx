@@ -37,6 +37,7 @@ export function CheckoutForm() {
   const coupon = useCartStore((s) => s.coupon);
   const syncWithServer = useCartStore((s) => s.syncWithServer);
 
+  const userEmail = useAuthStore((s) => s.user?.email ?? "");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [address, setAddress] = useState<Address>({
     name: "",
@@ -199,6 +200,17 @@ export function CheckoutForm() {
                 {paymentStep.type === "card" && paymentStep.clientSecret && (
                   <CreditCardForm
                     clientSecret={paymentStep.clientSecret}
+                    billingDetails={{
+                      name: address.name,
+                      email: userEmail,
+                      address: {
+                        line1: address.street,
+                        city: address.city,
+                        state: address.state,
+                        postal_code: address.zip,
+                        country: "BR",
+                      },
+                    }}
                     onPaymentSuccess={() =>
                       orderId && router.push(`/checkout/success?orderId=${orderId}`)
                     }

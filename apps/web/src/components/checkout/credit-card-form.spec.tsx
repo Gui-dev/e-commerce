@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreditCardForm } from "./credit-card-form";
 
 const mockConfirm = vi.fn();
-const mockGetElement = vi.fn(() => ({ _card: true }));
 
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => Promise.resolve({}),
@@ -11,41 +10,75 @@ vi.mock("@/lib/stripe", () => ({
 
 vi.mock("@stripe/react-stripe-js", () => ({
   Elements: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  CardElement: () => <div data-testid="card-element" />,
-  useStripe: () => ({ confirmCardPayment: mockConfirm }),
-  useElements: () => ({ getElement: mockGetElement }),
+  PaymentElement: () => <div data-testid="payment-element" />,
+  useStripe: () => ({ confirmPayment: mockConfirm }),
+  useElements: () => ({}),
 }));
 
 vi.mock("@stripe/stripe-js", () => ({
   loadStripe: () => Promise.resolve({}),
 }));
 
+const BILLING = {
+  name: "Maria Silva",
+  email: "maria@test.com",
+  address: {
+    line1: "Rua das Flores, 123",
+    city: "São Paulo",
+    state: "SP",
+    postal_code: "01000-000",
+    country: "BR",
+  },
+};
+
 describe("<CreditCardForm />", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders the card element and pay button", () => {
+  it("renders the payment element and pay button", () => {
     render(
-      <CreditCardForm clientSecret="cs_test_1" onPaymentSuccess={() => {}} onCancel={() => {}} />,
+      <CreditCardForm
+        clientSecret="cs_test_1"
+        billingDetails={BILLING}
+        onPaymentSuccess={() => {}}
+        onCancel={() => {}}
+      />,
     );
 
-    expect(screen.getByTestId("card-element")).toBeInTheDocument();
+    expect(screen.getByTestId("payment-element")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /pagar/i })).toBeInTheDocument();
   });
 
-  it("confirms the payment intent with the card element on submit", async () => {
+  it("confirms the payment intent with the payment element on submit", async () => {
     mockConfirm.mockResolvedValue({ paymentIntent: { status: "succeeded" } });
     const onSuccess = vi.fn();
 
     render(
-      <CreditCardForm clientSecret="cs_test_1" onPaymentSuccess={onSuccess} onCancel={() => {}} />,
+      <CreditCardForm
+        clientSecret="cs_test_1"
+        billingDetails={BILLING}
+        onPaymentSuccess={onSuccess}
+        onCancel={() => {}}
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: /pagar/i }));
 
     await waitFor(() =>
-      expect(mockConfirm).toHaveBeenCalledWith("cs_test_1", {
-        payment_method: { card: { _card: true } },
+      expect(mockConfirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clientSecret: "cs_test_1",
+          redirect: "if_required",
+        }),
+      ),
+    );
+    expect(mockConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        confirmParams: expect.objectContaining({
+          payment_method_data: expect.objectContaining({
+            billing_details: BILLING,
+          }),
+        }),
       }),
     );
     expect(onSuccess).toHaveBeenCalled();
@@ -56,7 +89,12 @@ describe("<CreditCardForm />", () => {
     const onSuccess = vi.fn();
 
     render(
-      <CreditCardForm clientSecret="cs_test_1" onPaymentSuccess={onSuccess} onCancel={() => {}} />,
+      <CreditCardForm
+        clientSecret="cs_test_1"
+        billingDetails={BILLING}
+        onPaymentSuccess={onSuccess}
+        onCancel={() => {}}
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: /pagar/i }));
 

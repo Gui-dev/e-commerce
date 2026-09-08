@@ -29,9 +29,9 @@ vi.mock("@/lib/stripe", () => ({
 
 vi.mock("@stripe/react-stripe-js", () => ({
   Elements: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  CardElement: () => <div data-testid="card-element" />,
-  useStripe: () => ({ confirmCardPayment: vi.fn() }),
-  useElements: () => ({ getElement: () => ({}) }),
+  PaymentElement: () => <div data-testid="payment-element" />,
+  useStripe: () => ({ confirmPayment: vi.fn() }),
+  useElements: () => ({}),
 }));
 
 function addItemToCart() {
@@ -141,7 +141,7 @@ describe("<CheckoutForm />", () => {
 
     await user.click(screen.getByRole("button", { name: /finalizar compra/i }));
 
-    await screen.findByTestId("card-element");
+    await screen.findByTestId("payment-element");
     expect(paymentIntentSpy).toHaveBeenCalledWith({
       orderId: "order-2",
       taxId: "000.000.000-00",
