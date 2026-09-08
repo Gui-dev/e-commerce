@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreditCardForm } from "./credit-card-form";
 
 const mockConfirm = vi.fn();
+const mockSubmit = vi.fn().mockResolvedValue({});
 
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => Promise.resolve({}),
@@ -12,7 +13,7 @@ vi.mock("@stripe/react-stripe-js", () => ({
   Elements: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   PaymentElement: () => <div data-testid="payment-element" />,
   useStripe: () => ({ confirmPayment: mockConfirm }),
-  useElements: () => ({}),
+  useElements: () => ({ submit: mockSubmit }),
 }));
 
 vi.mock("@stripe/stripe-js", () => ({
@@ -64,6 +65,7 @@ describe("<CreditCardForm />", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: /pagar/i }));
 
+    await waitFor(() => expect(mockSubmit).toHaveBeenCalled());
     await waitFor(() =>
       expect(mockConfirm).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -82,6 +84,25 @@ describe("<CreditCardForm />", () => {
       }),
     );
     expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it("shows error when the payment element submission fails", async () => {
+    mockSubmit.mockResolvedValueOnce({ error: { message: "Invalid card details." } });
+    const onSuccess = vi.fn();
+
+    render(
+      <CreditCardForm
+        clientSecret="cs_test_1"
+        billingDetails={BILLING}
+        onPaymentSuccess={onSuccess}
+        onCancel={() => {}}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /pagar/i }));
+
+    expect(await screen.findByText(/invalid card details/i)).toBeInTheDocument();
+    expect(mockConfirm).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 
   it("shows error and does not navigate when payment fails", async () => {

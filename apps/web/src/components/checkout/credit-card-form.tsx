@@ -40,6 +40,13 @@ function CardFormInner({ clientSecret, billingDetails, onPaymentSuccess, onCance
     setLoading(true);
     setError(null);
 
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      setError(submitError.message ?? "Erro ao processar o pagamento.");
+      setLoading(false);
+      return;
+    }
+
     const result = await stripe.confirmPayment({
       elements,
       clientSecret,
