@@ -26,7 +26,7 @@ describe("<PixPanel />", () => {
 
     expect(screen.getByAltText(/qr code pix/i)).toHaveAttribute(
       "src",
-      "https://stripe.test/qr.png",
+      expect.stringContaining("_next/image"),
     );
     expect(screen.getByRole("button", { name: /copiar/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /instruções/i })).toHaveAttribute(

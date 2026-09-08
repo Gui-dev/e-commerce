@@ -8,9 +8,10 @@ import Link from "next/link";
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, priority }: ProductCardProps) {
   return (
     <Link href={`/product/${product.slug}`} className="group block">
       <Card className="h-full transition-shadow hover:shadow-md">
@@ -20,6 +21,7 @@ export function ProductCard({ product }: ProductCardProps) {
               src={getImageSrc(product.imageUrl)!}
               alt={product.name}
               fill
+              priority={priority}
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />

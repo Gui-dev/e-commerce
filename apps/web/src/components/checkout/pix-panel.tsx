@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Copy, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 interface PixPanelProps {
@@ -37,7 +38,13 @@ export function PixPanel({
         Escaneie o QR Code abaixo no app do seu banco para pagar com Pix.
       </p>
       {qrCodePngUrl && (
-        <img src={qrCodePngUrl} alt="QR Code Pix" className="size-56 rounded-lg border" />
+        <Image
+          src={qrCodePngUrl}
+          alt="QR Code Pix"
+          width={224}
+          height={224}
+          className="size-56 rounded-lg border object-cover"
+        />
       )}
       <Button type="button" variant="outline" onClick={handleCopy} disabled={copying}>
         {copying ? <Loader2 className="size-4 animate-spin" /> : <Copy className="size-4" />}
