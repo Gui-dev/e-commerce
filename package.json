@@ -14,7 +14,8 @@
     "db:push": "pnpm --filter @kronostore/api db:push",
     "db:studio": "pnpm --filter @kronostore/api db:studio",
     "infra:up": "podman compose up -d",
-    "infra:down": "podman compose down"
+    "infra:down": "podman compose down",
+    "stripe:listen": "stripe listen --forward-to http://localhost:3001/webhooks/stripe"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
