@@ -74,7 +74,7 @@ function CardFormInner({ clientSecret, billingDetails, onPaymentSuccess, onCance
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-lg border p-4">
-        <PaymentElement options={{ fields: { billingDetails: "never" } }} />
+        <PaymentElement />
       </div>
       {error && (
         <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
