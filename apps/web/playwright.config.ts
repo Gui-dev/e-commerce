@@ -23,4 +23,5 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
+  globalSetup: "./tests/e2e/global-setup.ts",
 });

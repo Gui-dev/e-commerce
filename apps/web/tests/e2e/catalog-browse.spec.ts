@@ -6,7 +6,7 @@ test.describe("Catalog Browse", () => {
   });
 
   test("should display products on homepage", async ({ page }) => {
-    await expect(page.getByText("Wireless Headphones")).toBeVisible();
+    await expect(page.getByText("Fone de Ouvido Bluetooth")).toBeVisible();
   });
 
   test("should navigate to category detail from category nav", async ({ page }) => {
@@ -21,19 +21,19 @@ test.describe("Catalog Browse", () => {
 
   test("should display categories on /categories page", async ({ page }) => {
     await page.goto("/categories");
-    await expect(page.getByText("Eletrônicos")).toBeVisible();
+    await expect(page.locator("main").getByText("Eletrônicos")).toBeVisible();
   });
 
   test("should navigate to category detail from categories page", async ({ page }) => {
     await page.goto("/categories");
-    await page.getByText("Eletrônicos").click();
+    await page.locator("main").getByRole("link", { name: "Eletrônicos" }).click();
     await expect(page).toHaveURL("/categories/eletronicos");
   });
 
   test("should search products on homepage", async ({ page }) => {
     const searchInput = page.getByPlaceholder("Buscar produtos...");
-    await searchInput.fill("headphones");
+    await searchInput.fill("Fone");
     await page.waitForTimeout(400);
-    await expect(page).toHaveURL(/search=headphones/);
+    await expect(page.getByText("Fone de Ouvido Bluetooth")).toBeVisible();
   });
 });

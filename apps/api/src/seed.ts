@@ -1,6 +1,15 @@
 import { eq } from "drizzle-orm";
 import { db } from "./lib/db/index.js";
-import { categories, coupons, productVariants, products, stock } from "./lib/db/schema.js";
+import {
+  categories,
+  coupons,
+  cartItems,
+  orderItems,
+  productVariants,
+  products,
+  stock,
+  stockMovements,
+} from "./lib/db/schema.js";
 
 interface CategorySeed {
   name: string;
@@ -204,6 +213,18 @@ async function upsertCoupon() {
 
 async function main() {
   console.log("Seeding catalog...");
+
+  if (process.argv.includes("--reset")) {
+    console.log("Resetting catalog tables...");
+    await db.delete(orderItems);
+    await db.delete(cartItems);
+    await db.delete(stockMovements);
+    await db.delete(stock);
+    await db.delete(productVariants);
+    await db.delete(products);
+    await db.delete(categories);
+    console.log("Catalog tables reset.");
+  }
 
   for (const category of CATEGORIES) {
     const categoryId = await upsertCategory(category);

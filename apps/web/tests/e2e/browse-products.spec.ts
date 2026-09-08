@@ -10,7 +10,7 @@ test.describe("Browse Products", () => {
   });
 
   test("displays product cards", async ({ page }) => {
-    await expect(page.getByText("Wireless Headphones")).toBeVisible();
+    await expect(page.getByText("Fone de Ouvido Bluetooth")).toBeVisible();
   });
 
   test("displays category sidebar", async ({ page }) => {

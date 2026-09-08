@@ -12,6 +12,7 @@
     "test": "turbo test",
     "db:migrate": "pnpm --filter @kronostore/api db:migrate",
     "db:push": "pnpm --filter @kronostore/api db:push",
+    "db:seed": "pnpm --filter @kronostore/api db:seed",
     "db:studio": "pnpm --filter @kronostore/api db:studio",
     "infra:up": "podman compose up -d",
     "infra:down": "podman compose down",
