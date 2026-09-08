@@ -95,7 +95,7 @@ export function CreditCardForm(props: CreditCardFormProps) {
   return (
     <Elements
       stripe={getStripe()}
-      options={{ clientSecret: props.clientSecret, locale: "pt-BR", appearance: { theme: "stripe" } }}
+      options={{ clientSecret: props.clientSecret, locale: "pt-BR", appearance: { theme: "night" } }}
     >
       <CardFormInner {...props} />
     </Elements>
