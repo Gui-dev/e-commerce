@@ -101,7 +101,8 @@ pnpm infra:up               # Start PostgreSQL, Redis, MinIO, Mailpit
 pnpm infra:down             # Stop infrastructure
 
 # Stripe webhooks (required for live card payments)
-stripe listen --forward-to http://localhost:3001/webhooks/stripe
+# Start the listener with: pnpm stripe:listen
+# (alias for: stripe listen --forward-to http://localhost:3001/webhooks/stripe)
 # Must be running for Stripe to deliver webhook events to the API.
 # The signing secret is `STRIPE_WEBHOOK_SECRET` in `apps/api/.env`.
 ```
