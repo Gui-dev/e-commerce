@@ -94,6 +94,7 @@ pnpm format                 # Fix lint + format
 # Database
 pnpm db:push                # Push schema changes
 pnpm db:migrate             # Run migrations
+pnpm db:seed                # Seed catalog (products, categories, coupons)
 pnpm db:studio              # Open Drizzle Studio
 
 # Infrastructure
