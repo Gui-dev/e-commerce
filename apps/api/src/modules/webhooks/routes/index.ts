@@ -18,7 +18,24 @@ export function createWebhookRoutes(
       },
       async (request) => {
         const event = request.stripeEvent!;
-        await new ProcessStripeWebhookUseCase(paymentRepository, orderRepository).execute(event);
+        request.log.info(
+          { eventType: event.type, eventId: event.id, created: event.created },
+          "Stripe webhook received",
+        );
+        const start = Date.now();
+        const result = await new ProcessStripeWebhookUseCase(
+          paymentRepository,
+          orderRepository,
+        ).execute(event);
+        request.log.info(
+          {
+            eventType: event.type,
+            eventId: event.id,
+            durationMs: Date.now() - start,
+            outcome: result ? "processed" : "ignored",
+          },
+          "Webhook processed",
+        );
         return { received: true };
       },
     );

@@ -1,5 +1,6 @@
 import type { preHandlerHookHandler } from "fastify";
-import Stripe from "stripe";
+import type { Stripe } from "stripe";
+import { stripeClient } from "../../payments/infra/stripe-client.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -18,10 +19,7 @@ export const verifyStripeSignature: preHandlerHookHandler = async (request, repl
   }
 
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_placeholder", {
-      apiVersion: "2026-08-26.dahlia",
-    });
-    request.stripeEvent = stripe.webhooks.constructEvent(request.rawBody, signature, secret);
+    request.stripeEvent = stripeClient.webhooks.constructEvent(request.rawBody, signature, secret);
   } catch {
     return reply
       .code(400)
