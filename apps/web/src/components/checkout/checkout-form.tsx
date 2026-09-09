@@ -78,10 +78,14 @@ export function CheckoutForm() {
         paymentMethod,
       });
 
-      const paymentIntent = await api.post<PaymentIntentResponse>("/checkout/payment-intent", {
-        orderId: order.id,
-        taxId: address.taxId || undefined,
-      });
+      const paymentIntent = await api.post<PaymentIntentResponse>(
+        "/checkout/payment-intent",
+        {
+          orderId: order.id,
+          taxId: address.taxId || undefined,
+        },
+        { headers: { "idempotency-key": `payment-intent:${order.id}` } },
+      );
 
       setOrderId(order.id);
       setPaymentStep(paymentIntent);

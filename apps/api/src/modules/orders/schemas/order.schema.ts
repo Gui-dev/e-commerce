@@ -39,3 +39,32 @@ export const idempotencyKeyHeaderSchema = z.object({
 export const updateOrderStatusBodySchema = z.object({
   status: z.enum(["pending", "confirmed", "paid", "shipped", "delivered", "cancelled"]),
 });
+
+export const paymentIntentResponseSchema = z.union([
+  z.object({
+    type: z.literal("card"),
+    paymentIntentId: z.string(),
+    clientSecret: z.string(),
+  }),
+  z.object({
+    type: z.literal("pix"),
+    paymentIntentId: z.string(),
+    qrCodeUrl: z.string(),
+    qrCodePngUrl: z.string(),
+    qrCodeSvgUrl: z.string(),
+    hostedInstructionsUrl: z.string(),
+    expiresAt: z.string().nullable(),
+  }),
+  z.object({
+    type: z.literal("boleto"),
+    paymentIntentId: z.string(),
+    hostedVoucherUrl: z.string(),
+    pdfUrl: z.string(),
+    expiresAt: z.string().nullable(),
+  }),
+]);
+
+export const notFoundResponseSchema = z.object({
+  error: z.string(),
+  message: z.string(),
+});

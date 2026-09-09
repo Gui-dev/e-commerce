@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray, notInArray } from "drizzle-orm";
 import { db } from "./lib/db/index.js";
 import {
+  cartItems,
   categories,
   coupons,
-  cartItems,
   orderItems,
   productVariants,
   products,
@@ -214,7 +214,18 @@ async function upsertCoupon() {
 async function main() {
   console.log("Seeding catalog...");
 
-  if (process.argv.includes("--reset")) {
+  if (process.argv.includes("--clean")) {
+    console.log("Cleaning leftover categories...");
+    const canonicalSlugs = ["eletronicos", "roupas", "casa", "esportes"];
+    const canonicalCategories = await db.query.categories.findMany({
+      where: inArray(categories.slug, canonicalSlugs),
+      columns: { id: true },
+    });
+    const canonicalIds = new Set(canonicalCategories.map((c) => c.id));
+    await db.delete(products).where(notInArray(products.categoryId, Array.from(canonicalIds)));
+    await db.delete(categories).where(notInArray(categories.slug, canonicalSlugs));
+    console.log("Leftover categories removed.");
+  } else if (process.argv.includes("--reset")) {
     console.log("Resetting catalog tables...");
     await db.delete(orderItems);
     await db.delete(cartItems);

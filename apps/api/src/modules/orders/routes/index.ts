@@ -13,7 +13,9 @@ import type { OrderRepository } from "../domain/order-repository.js";
 import {
   checkoutSchema,
   idempotencyKeyHeaderSchema,
+  notFoundResponseSchema,
   orderParamsSchema,
+  paymentIntentResponseSchema,
   paymentIntentSchema,
 } from "../schemas/order.schema.js";
 import { CheckoutUseCase } from "../use-cases/checkout.use-case.js";
@@ -72,12 +74,16 @@ export function createCheckoutRoutes(
     app.withTypeProvider<ZodTypeProvider>().post(
       "/checkout/payment-intent",
       {
-        preHandler: [requireAuth],
+        preHandler: [requireAuth, idempotencyMiddleware],
         schema: {
           tags: ["Checkout"],
           summary: "Criar PaymentIntent no Stripe",
           security: [{ cookieAuth: [] }],
           body: paymentIntentSchema,
+          response: {
+            200: paymentIntentResponseSchema,
+            404: notFoundResponseSchema,
+          },
         },
       },
       async (request, reply) => {
