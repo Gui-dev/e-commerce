@@ -13,7 +13,7 @@ import { useCartStore } from "@/stores/cart-store";
 import type { Order, PaymentIntentResponse, PaymentMethod } from "@/types";
 import { CreditCard, Loader2, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { BoletoPanel } from "./boleto-panel";
 import { CreditCardForm } from "./credit-card-form";
 import { PaymentPicker } from "./payment-picker";
@@ -52,9 +52,13 @@ export function CheckoutForm() {
   const [step, setStep] = useState<"form" | "payment">("form");
   const [paymentStep, setPaymentStep] = useState<PaymentIntentResponse | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const hasNavigated = useRef(false);
 
   usePaymentStatus(orderId ?? "", () => {
-    if (orderId) router.push(`/checkout/success?orderId=${orderId}`);
+    if (orderId && !hasNavigated.current) {
+      hasNavigated.current = true;
+      router.push(`/checkout/success?orderId=${orderId}`);
+    }
   });
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
@@ -73,10 +77,11 @@ export function CheckoutForm() {
         await syncWithServer(token);
       }
 
-      const order = await api.post<Order>("/checkout", {
-        address: { ...address, country: "BR" },
-        paymentMethod,
-      });
+      const order = await api.post<Order>(
+        "/checkout",
+        { address: { ...address, country: "BR" }, paymentMethod },
+        { headers: { "idempotency-key": `checkout:${crypto.randomUUID()}` } },
+      );
 
       const paymentIntent = await api.post<PaymentIntentResponse>(
         "/checkout/payment-intent",
@@ -215,9 +220,12 @@ export function CheckoutForm() {
                         country: "BR",
                       },
                     }}
-                    onPaymentSuccess={() =>
-                      orderId && router.push(`/checkout/success?orderId=${orderId}`)
-                    }
+                    onPaymentSuccess={() => {
+                      if (orderId && !hasNavigated.current) {
+                        hasNavigated.current = true;
+                        router.push(`/checkout/success?orderId=${orderId}`);
+                      }
+                    }}
                     onCancel={() => setStep("form")}
                   />
                 )}
