@@ -2,6 +2,16 @@
 
 Full-stack e-commerce learning project built with modern TypeScript tools.
 
+## Screenshots
+
+| Home | Product Details |
+|------|----------------|
+| ![Home](docs/screens/home.png) | ![Product Details](docs/screens/product-details.png) |
+
+| Cart | Dashboard |
+|------|-----------|
+| ![Cart](docs/screens/cart.png) | ![Dashboard](docs/screens/dashboard.png) |
+
 ## Tech Stack
 
 | Layer | Technology |
