@@ -45,9 +45,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: kronostore_test
+          POSTGRES_USER: kronostore
+          POSTGRES_PASSWORD: kronostore
+          POSTGRES_DB: kronostore
         ports:
           - 5432:5432
         options: >-
@@ -65,12 +65,18 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/kronostore_test
+      DATABASE_URL: postgresql://kronostore:kronostore@localhost:5432/kronostore
       REDIS_URL: redis://localhost:6379
       BETTER_AUTH_SECRET: ci-test-secret
+      BETTER_AUTH_URL: http://localhost:3001
       STRIPE_SECRET_KEY: sk_test_placeholder
       STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
       STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
+      MINIO_ENDPOINT: localhost
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: kronostore-images
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
