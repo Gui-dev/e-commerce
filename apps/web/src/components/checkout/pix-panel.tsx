@@ -9,15 +9,9 @@ interface PixPanelProps {
   qrCodePngUrl: string;
   hostedInstructionsUrl: string;
   copyCode: string;
-  onPaymentSuccess: () => void;
 }
 
-export function PixPanel({
-  qrCodePngUrl,
-  hostedInstructionsUrl,
-  copyCode,
-  onPaymentSuccess,
-}: PixPanelProps) {
+export function PixPanel({ qrCodePngUrl, hostedInstructionsUrl, copyCode }: PixPanelProps) {
   const [copied, setCopied] = useState(false);
   const [copying, setCopying] = useState(false);
 

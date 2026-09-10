@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { getStripe } from "@/lib/stripe";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { getStripe } from "@/lib/stripe";
 
 interface BillingDetails {
   name: string;
@@ -25,7 +25,12 @@ interface CreditCardFormProps {
   onCancel: () => void;
 }
 
-function CardFormInner({ clientSecret, billingDetails, onPaymentSuccess, onCancel }: CreditCardFormProps) {
+function CardFormInner({
+  clientSecret,
+  billingDetails,
+  onPaymentSuccess,
+  onCancel,
+}: CreditCardFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -95,7 +100,11 @@ export function CreditCardForm(props: CreditCardFormProps) {
   return (
     <Elements
       stripe={getStripe()}
-      options={{ clientSecret: props.clientSecret, locale: "pt-BR", appearance: { theme: "night" } }}
+      options={{
+        clientSecret: props.clientSecret,
+        locale: "pt-BR",
+        appearance: { theme: "night" },
+      }}
     >
       <CardFormInner {...props} />
     </Elements>

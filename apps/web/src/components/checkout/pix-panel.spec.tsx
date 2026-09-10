@@ -20,7 +20,6 @@ describe("<PixPanel />", () => {
         qrCodePngUrl="https://stripe.test/qr.png"
         hostedInstructionsUrl="https://stripe.test/instructions"
         copyCode="000201pix"
-        onPaymentSuccess={() => {}}
       />,
     );
 
@@ -38,14 +37,7 @@ describe("<PixPanel />", () => {
   it("copies the pix code when clicking copy", async () => {
     const user = userEvent.setup();
     installClipboardMock();
-    render(
-      <PixPanel
-        qrCodePngUrl=""
-        hostedInstructionsUrl=""
-        copyCode="000201pix"
-        onPaymentSuccess={() => {}}
-      />,
-    );
+    render(<PixPanel qrCodePngUrl="" hostedInstructionsUrl="" copyCode="000201pix" />);
 
     await user.click(screen.getByRole("button", { name: /copiar/i }));
 

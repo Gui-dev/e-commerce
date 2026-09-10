@@ -234,14 +234,10 @@ export function CheckoutForm() {
                     qrCodePngUrl={paymentStep.qrCodePngUrl ?? ""}
                     hostedInstructionsUrl={paymentStep.hostedInstructionsUrl ?? ""}
                     copyCode={paymentStep.qrCodeUrl ?? ""}
-                    onPaymentSuccess={() => {}}
                   />
                 )}
                 {paymentStep.type === "boleto" && (
-                  <BoletoPanel
-                    hostedVoucherUrl={paymentStep.hostedVoucherUrl ?? ""}
-                    onPaymentSuccess={() => {}}
-                  />
+                  <BoletoPanel hostedVoucherUrl={paymentStep.hostedVoucherUrl ?? ""} />
                 )}
               </div>
             )}
