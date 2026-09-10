@@ -25,4 +25,17 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().optional(),
 });
 
-export const env = envSchema.parse(process.env);
+let _env: z.infer<typeof envSchema> | undefined;
+
+export function getEnv(): z.infer<typeof envSchema> {
+  if (!_env) {
+    _env = envSchema.parse(process.env);
+  }
+  return _env;
+}
+
+export const env = new Proxy({} as z.infer<typeof envSchema>, {
+  get(_target, prop) {
+    return (getEnv() as Record<string, unknown>)[prop as string];
+  },
+});
